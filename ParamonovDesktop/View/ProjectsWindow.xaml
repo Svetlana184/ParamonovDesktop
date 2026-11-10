@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ParamonovDesktop.View"
         mc:Ignorable="d"
-        Title="Проекты" Height="450" Width="800" FontFamily="Consolas">
+        Title="Проекты" Height="450" Width="800" FontFamily="Consolas" WindowStartupLocation="CenterScreen">
     <Window.Background>
         <ImageBrush ImageSource="/Resources/paramonov_ui_bg.jpg" 
                     Stretch="UniformToFill"/>

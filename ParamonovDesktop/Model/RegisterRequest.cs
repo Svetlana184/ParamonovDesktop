@@ -12,7 +12,7 @@ namespace ParamonovDesktop.Model
         public string LastName { get; set; }
         public string Login { get; set; }
         public string Password { get; set; }
-        public int Role { get; set; }
+        public string Role { get; set; }       //"customer" / "manager" / "developer"
         public int? IdTeam { get; set; }
         public int? IdCompany { get; set; }
         public string ShortDescription { get; set; }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ParamonovDesktop.View"
         mc:Ignorable="d"
-        Title="Вход" Height="500" Width="400" Background="LightBlue" FontFamily="Consolas">
+        Title="Вход" Height="500" Width="400" Background="LightBlue" FontFamily="Consolas" WindowStartupLocation="CenterScreen">
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

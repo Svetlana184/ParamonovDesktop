@@ -49,7 +49,8 @@ namespace ParamonovDesktop.ViewModel
         {
             if (string.IsNullOrWhiteSpace(Login) || string.IsNullOrWhiteSpace(Password))
             {
-                MessageBox.Show("Введите логин и пароль");
+                CustomMessageBox.Show("Введите логин и пароль");
+                //MessageBox.Show("Введите логин и пароль");
                 return;
             }
 
@@ -63,7 +64,7 @@ namespace ParamonovDesktop.ViewModel
 
             if (resp == null)
             {
-                MessageBox.Show("Неверный логин или пароль");
+                CustomMessageBox.Show("Неверный логин или пароль");
                 return;
             }
 

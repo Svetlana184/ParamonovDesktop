@@ -3,16 +3,13 @@ using CommunityToolkit.Mvvm.Input;
 using ParamonovDesktop.Model;
 using ParamonovDesktop.Services;
 using ParamonovDesktop.View;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 
 namespace ParamonovDesktop.ViewModel
 {
-    public partial class RegisterViewModel : ObservableObject
+    public class RegisterViewModel : ObservableObject
     {
         private readonly LoginService _loginService;
         private readonly RegisterWindow _window;
@@ -80,33 +77,57 @@ namespace ParamonovDesktop.ViewModel
             set { SetProperty(ref _isBusy, value); }
         }
 
+        public ICommand RegisterCommand { get; private set; }
+        public ICommand BackToLoginCommand { get; private set; }
+
         public RegisterViewModel(RegisterWindow window)
         {
             _window = window;
             _loginService = new LoginService();
+
+            RegisterCommand = new AsyncRelayCommand(Register, CanRegister);
+            BackToLoginCommand = new RelayCommand(BackToLogin);
         }
 
-        [RelayCommand]
-        public async Task Register()
+        private bool CanRegister()
+        {
+            return !IsBusy;
+        }
+
+        private string RoleName
+        {
+            get
+            {
+                switch (SelectedRoleIndex)
+                {
+                    case 0: return "customer";
+                    case 1: return "manager";
+                    case 2: return "developer";
+                    default: return "customer";
+                }
+            }
+        }
+
+        private async Task Register()
         {
             if (string.IsNullOrWhiteSpace(FirstName) ||
                 string.IsNullOrWhiteSpace(LastName) ||
                 string.IsNullOrWhiteSpace(Login) ||
                 string.IsNullOrWhiteSpace(Password))
             {
-                MessageBox.Show("Заполните обязательные поля");
+                CustomMessageBox.Show("Заполните обязательные поля");
                 return;
             }
 
             if (Password != PasswordConfirm)
             {
-                MessageBox.Show("Пароли не совпадают");
+                CustomMessageBox.Show("Пароли не совпадают");
                 return;
             }
 
             if (Password.Length < 4)
             {
-                MessageBox.Show("Пароль должен содержать минимум 4 символа");
+                CustomMessageBox.Show("Пароль должен содержать минимум 4 символа");
                 return;
             }
 
@@ -128,7 +149,7 @@ namespace ParamonovDesktop.ViewModel
                 LastName = LastName.Trim(),
                 Login = Login.Trim(),
                 Password = Password,
-                Role = SelectedRoleIndex,
+                Role = RoleName,             //"customer" / "manager" / "developer"
                 IdCompany = company,
                 IdTeam = team,
                 ShortDescription = "Роль: " + RoleName
@@ -139,11 +160,10 @@ namespace ParamonovDesktop.ViewModel
             if (error != null)
             {
                 IsBusy = false;
-                MessageBox.Show("Не удалось зарегистрироваться:\n" + error);
+                CustomMessageBox.Show("Не удалось зарегистрироваться:\n" + error);
                 return;
             }
 
-            // Автоматический вход
             var resp = await _loginService.SignIn(new LoginRequest
             {
                 Login = Login.Trim(),
@@ -154,7 +174,7 @@ namespace ParamonovDesktop.ViewModel
 
             if (resp == null)
             {
-                MessageBox.Show("Регистрация успешна, но войти автоматически не удалось. Войдите вручную.");
+                CustomMessageBox.Show("Регистрация успешна, но войти автоматически не удалось. Войдите вручную.");
                 BackToLogin();
                 return;
             }
@@ -165,26 +185,11 @@ namespace ParamonovDesktop.ViewModel
             _window.Close();
         }
 
-        [RelayCommand]
-        public void BackToLogin()
+        private void BackToLogin()
         {
             var login = new LoginWindow();
             login.Show();
             _window.Close();
-        }
-
-        private string RoleName
-        {
-            get
-            {
-                switch (SelectedRoleIndex)
-                {
-                    case 0: return "Customer";
-                    case 1: return "Manager";
-                    case 2: return "Developer";
-                    default: return "Customer";
-                }
-            }
         }
     }
 }
