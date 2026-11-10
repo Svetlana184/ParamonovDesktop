@@ -5,6 +5,7 @@
              xmlns:conv="clr-namespace:ParamonovDesktop.Converters"
              StartupUri="View/LoginWindow.xaml">
     <Application.Resources>
-        
+        <conv:InverseBooleanConverter x:Key="InverseBool"/>
+        <conv:BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
     </Application.Resources>
 </Application>

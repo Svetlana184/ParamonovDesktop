@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ParamonovDesktop.View"
         mc:Ignorable="d"
-        Title="Регистрация" Height="600" Width="400">
+        Title="Регистрация" Height="810" Width="400" Background="LightBlue" FontFamily="Consolas">
     <Grid Margin="25">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -20,53 +20,55 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Регистрация" FontSize="24"
-                   HorizontalAlignment="Center" Margin="0 0 0 15"/>
+        <TextBlock Grid.Row="0" Text="Регистрация" FontSize="30"
+                   HorizontalAlignment="Center" Margin="0 0 0 15" FontWeight="ExtraBold"/>
 
-        <Label Grid.Row="1" Content="Имя *"/>
+        <Label Grid.Row="1" Content="Имя *" FontSize="20"/>
         <TextBox Grid.Row="2" Margin="0 0 0 8"
-                 Text="{Binding FirstName, UpdateSourceTrigger=PropertyChanged}"/>
+                 Text="{Binding FirstName, UpdateSourceTrigger=PropertyChanged}" FontSize="20" Background="BlanchedAlmond"/>
 
-        <Label Grid.Row="3" Content="Фамилия *"/>
+        <Label Grid.Row="3" Content="Фамилия *" FontSize="20"/>
         <TextBox Grid.Row="4" Margin="0 0 0 8"
-                 Text="{Binding LastName, UpdateSourceTrigger=PropertyChanged}"/>
+                 Text="{Binding LastName, UpdateSourceTrigger=PropertyChanged}" FontSize="20" Background="BlanchedAlmond"/>
 
-        <Label Grid.Row="5" Content="Логин *"/>
+        <Label Grid.Row="5" Content="Логин *" FontSize="20"/>
         <TextBox Grid.Row="6" Margin="0 0 0 8"
-                 Text="{Binding Login, UpdateSourceTrigger=PropertyChanged}"/>
+                 Text="{Binding Login, UpdateSourceTrigger=PropertyChanged}" FontSize="20" Background="BlanchedAlmond"/>
 
-        <Label Grid.Row="7" Content="Пароль *"/>
+        <Label Grid.Row="7" Content="Пароль *" FontSize="20"/>
         <PasswordBox Grid.Row="8" Margin="0 0 0 8"
-                     PasswordChanged="PasswordBox_OnPasswordChanged"/>
+                     PasswordChanged="PasswordBox_OnPasswordChanged" FontSize="20" Background="BlanchedAlmond"/>
 
-        <Label Grid.Row="9" Content="Повторите пароль *"/>
+        <Label Grid.Row="9" Content="Повторите пароль *" FontSize="20"/>
         <PasswordBox Grid.Row="10" Margin="0 0 0 8"
-                     PasswordChanged="PasswordConfirmBox_OnPasswordChanged"/>
+                     PasswordChanged="PasswordConfirmBox_OnPasswordChanged" FontSize="20" Background="BlanchedAlmond"/>
 
         <StackPanel Grid.Row="11">
-            <Label Content="Роль *"/>
-            <ComboBox SelectedIndex="{Binding SelectedRoleIndex}">
-                <ComboBoxItem Content="Заказчик"/>
-                <ComboBoxItem Content="Менеджер"/>
-                <ComboBoxItem Content="Разработчик"/>
+            <Label Content="Роль *" FontSize="20"/>
+            <ComboBox SelectedIndex="{Binding SelectedRoleIndex}" FontSize="20" Background="BlanchedAlmond">
+                <ComboBoxItem Content="Заказчик" Background="BlanchedAlmond"/>
+                <ComboBoxItem Content="Менеджер" Background="BlanchedAlmond"/>
+                <ComboBoxItem Content="Разработчик" Background="BlanchedAlmond"/>
             </ComboBox>
 
-            <Label Content="ID компании (необязательно)" Margin="0 8 0 0"/>
-            <TextBox Text="{Binding IdCompanyText, UpdateSourceTrigger=PropertyChanged}"/>
+            <Label Content="ID компании (необязательно)" Margin="0 8 0 0" FontSize="20"/>
+            <TextBox Text="{Binding IdCompanyText, UpdateSourceTrigger=PropertyChanged}" FontSize="20" Background="BlanchedAlmond"/>
 
-            <Label Content="ID команды (необязательно)" Margin="0 8 0 0"/>
-            <TextBox Text="{Binding IdTeamText, UpdateSourceTrigger=PropertyChanged}"/>
+            <Label Content="ID команды (необязательно)" Margin="0 8 0 0" FontSize="20"/>
+            <TextBox Text="{Binding IdTeamText, UpdateSourceTrigger=PropertyChanged}" FontSize="20" Background="BlanchedAlmond"/>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 15 0 0">
-                <Button Content="Назад" Command="{Binding BackToLoginCommand}"
-                        Width="100" Height="32" Margin="0 0 10 0"/>
-                <Button Content="Зарегистрироваться"
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 25 0 0" >
+                <Button Content="НАЗАД" Command="{Binding BackToLoginCommand}"
+                        Width="100" Height="32" Margin="0 0 10 0" Background="BlanchedAlmond" FontSize="20" FontWeight="Bold"/>
+                <Button Content="ЗАРЕГИСТРИРОВАТЬСЯ"
                         Command="{Binding RegisterCommand}"
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
-                        Width="160" Height="32"/>
+                        Width="220" Height="32" FontSize="20" Background="RoyalBlue" FontWeight="Bold" Foreground="BlanchedAlmond"/>
             </StackPanel>
         </StackPanel>
+        <Image Grid.Row="12" Source="/Resources/paramonov_ui_cat.png" Width="150" Height="100"/>
     </Grid>
 </Window>

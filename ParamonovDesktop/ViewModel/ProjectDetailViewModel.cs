@@ -4,6 +4,7 @@ using ParamonovDesktop.Model;
 using ParamonovDesktop.Services;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -11,92 +12,83 @@ namespace ParamonovDesktop.ViewModel
 {
     public partial class ProjectDetailViewModel : ObservableObject
     {
-        private readonly ProjectService _projectService;
-        private readonly SpecService _specService;
-        private readonly TaskService _taskService;
-        private readonly ChangeService _changeService;
+        private readonly ProjectService _projectService = new ProjectService();
+        private readonly SpecService _specService = new SpecService();
+        private readonly TaskService _taskService = new TaskService();
+        private readonly ChangeService _changeService = new ChangeService();
 
         private readonly int _projectId;
         private readonly string _role;
         private readonly int _userId;
 
-        private Project _project;
-        public Project Project
+        [ObservableProperty]
+        private Project project;
+
+        [ObservableProperty]
+        private ObservableCollection<SpecItem> specItems = new ObservableCollection<SpecItem>();
+
+        [ObservableProperty]
+        private ObservableCollection<TaskItem> tasks = new ObservableCollection<TaskItem>();
+
+        [ObservableProperty]
+        private ObservableCollection<ChangeRequest> changeRequests = new ObservableCollection<ChangeRequest>();
+
+        [ObservableProperty]
+        private SpecItem selectedSpecItem;
+
+        [ObservableProperty]
+        private TaskItem selectedTask;
+
+        [ObservableProperty]
+        private ChangeRequest selectedChange;
+
+        // === Роли ===
+        public bool IsCustomer { get { return _role == "Customer"; } }
+        public bool IsManager { get { return _role == "Manager"; } }
+        public bool IsDeveloper { get { return _role == "Developer"; } }
+
+        // === Видимость кнопок ===
+        public bool CanEditSpecVisible { get { return IsCustomer; } }
+        public bool CanEditTasksVisible { get { return IsManager; } }
+        public bool CanEditHoursVisible { get { return IsDeveloper; } }
+        public bool CanApproveChangesVisible { get { return IsCustomer || IsManager; } }
+
+        // === Активность кнопок ===
+        public bool CanSaveSpecAndSendEnabled
         {
-            get { return _project; }
-            set { SetProperty(ref _project, value); }
+            get { return IsCustomer && SelectedSpecItem != null; }
         }
 
-        private ObservableCollection<SpecItem> _specItems;
-        public ObservableCollection<SpecItem> SpecItems
+        public bool CanSaveHoursEnabled
         {
-            get { return _specItems; }
-            set { SetProperty(ref _specItems, value); }
+            get { return IsDeveloper && SelectedTask != null; }
         }
 
-        private ObservableCollection<TaskItem> _tasks;
-        public ObservableCollection<TaskItem> Tasks
+        public bool CanSaveTaskAndSendEnabled
         {
-            get { return _tasks; }
-            set { SetProperty(ref _tasks, value); }
+            get { return IsManager && SelectedTask != null; }
         }
 
-        private ObservableCollection<ChangeRequest> _changeRequests;
-        public ObservableCollection<ChangeRequest> ChangeRequests
+        public bool CanApproveChangeEnabled
         {
-            get { return _changeRequests; }
-            set { SetProperty(ref _changeRequests, value); }
+            get { return (IsCustomer || IsManager) && SelectedChange != null; }
         }
 
-        private SpecItem _selectedSpecItem;
-        public SpecItem SelectedSpecItem
+        // === Уведомления для пересчёта Can*Enabled ===
+        partial void OnSelectedSpecItemChanged(SpecItem value)
         {
-            get { return _selectedSpecItem; }
-            set { SetProperty(ref _selectedSpecItem, value); }
+            OnPropertyChanged(nameof(CanSaveSpecAndSendEnabled));
         }
 
-        private TaskItem _selectedTask;
-        public TaskItem SelectedTask
+        partial void OnSelectedTaskChanged(TaskItem value)
         {
-            get { return _selectedTask; }
-            set { SetProperty(ref _selectedTask, value); }
+            OnPropertyChanged(nameof(CanSaveHoursEnabled));
+            OnPropertyChanged(nameof(CanSaveTaskAndSendEnabled));
         }
 
-        private ChangeRequest _selectedChange;
-        public ChangeRequest SelectedChange
+        partial void OnSelectedChangeChanged(ChangeRequest value)
         {
-            get { return _selectedChange; }
-            set { SetProperty(ref _selectedChange, value); }
-        }
-
-        public bool CanEditSpec
-        {
-            get { return _role == "Customer"; }
-        }
-
-        public bool CanEditTasks
-        {
-            get { return _role == "Manager"; }
-        }
-
-        public bool CanEditHours
-        {
-            get { return _role == "Developer"; }
-        }
-
-        public bool CanApproveChanges
-        {
-            get { return _role == "Manager" || _role == "Customer"; }
-        }
-
-        public bool CanReadOnlyTasks
-        {
-            get { return !CanEditTasks; }
-        }
-
-        public bool CanReadOnlyHours
-        {
-            get { return !CanEditHours; }
+            OnPropertyChanged(nameof(CanApproveChangeEnabled));
         }
 
         public ProjectDetailViewModel(int projectId)
@@ -104,22 +96,7 @@ namespace ParamonovDesktop.ViewModel
             _projectId = projectId;
             _role = App.CurrentUser != null ? App.CurrentUser.Role : "Customer";
             _userId = App.CurrentUser != null ? App.CurrentUser.IdUser : 0;
-
-            _projectService = new ProjectService();
-            _specService = new SpecService();
-            _taskService = new TaskService();
-            _changeService = new ChangeService();
-
-            SpecItems = new ObservableCollection<SpecItem>();
-            Tasks = new ObservableCollection<TaskItem>();
-            ChangeRequests = new ObservableCollection<ChangeRequest>();
-
-            LoadAllAsync();
-        }
-
-        private async void LoadAllAsync()
-        {
-            await LoadAll();
+            var _ = LoadAll();
         }
 
         [RelayCommand]
@@ -128,39 +105,18 @@ namespace ParamonovDesktop.ViewModel
             Project = await _projectService.GetProject(_projectId);
 
             var items = await _specService.GetItems(_projectId);
-            SpecItems = new ObservableCollection<SpecItem>(
-                items != null ? items : new List<SpecItem>());
+            SpecItems = new ObservableCollection<SpecItem>(items ?? new List<SpecItem>());
 
-            var allTasks = await _taskService.GetAll();
-            if (allTasks == null)
-                allTasks = new List<TaskItem>();
+            var allTasks = await _taskService.GetAll() ?? new List<TaskItem>();
+            if (IsDeveloper)
+                Tasks = new ObservableCollection<TaskItem>(
+                    allTasks.Where(t => t.IdDeveloper == _userId));
+            else
+                Tasks = new ObservableCollection<TaskItem>(allTasks);
 
-            var filtered = new List<TaskItem>();
-            foreach (var t in allTasks)
-            {
-                if (CanEditHours)
-                {
-                    if (t.IdDeveloper == _userId)
-                        filtered.Add(t);
-                }
-                else
-                {
-                    filtered.Add(t);
-                }
-            }
-            Tasks = new ObservableCollection<TaskItem>(filtered);
-
-            var changes = await _changeService.GetAll();
-            if (changes == null)
-                changes = new List<ChangeRequest>();
-
-            var pending = new List<ChangeRequest>();
-            foreach (var c in changes)
-            {
-                if (c.Status == 0)
-                    pending.Add(c);
-            }
-            ChangeRequests = new ObservableCollection<ChangeRequest>(pending);
+            var changes = await _changeService.GetAll() ?? new List<ChangeRequest>();
+            ChangeRequests = new ObservableCollection<ChangeRequest>(
+                changes.Where(c => c.Status == 0));
         }
 
         [RelayCommand]
@@ -174,15 +130,14 @@ namespace ParamonovDesktop.ViewModel
 
             await _specService.UpdateItem(SelectedSpecItem);
 
-            var change = new ChangeRequest
+            await _changeService.Create(new ChangeRequest
             {
                 IdSpecItem = SelectedSpecItem.IdItem,
                 Name = "Изменение ТЗ: " + SelectedSpecItem.Name,
                 Description = SelectedSpecItem.Description,
                 Status = 0,
                 IdCreator = _userId
-            };
-            await _changeService.Create(change);
+            });
 
             MessageBox.Show("Изменение ТЗ отправлено менеджеру");
             await LoadAll();
@@ -199,7 +154,7 @@ namespace ParamonovDesktop.ViewModel
 
             await _taskService.Update(SelectedTask);
 
-            var change = new ChangeRequest
+            await _changeService.Create(new ChangeRequest
             {
                 IdSpecItem = 1,
                 IdTask = SelectedTask.IdTask,
@@ -207,8 +162,7 @@ namespace ParamonovDesktop.ViewModel
                 Description = "Новая стоимость: " + SelectedTask.Cost,
                 Status = 0,
                 IdCreator = _userId
-            };
-            await _changeService.Create(change);
+            });
 
             MessageBox.Show("Изменения счёта отправлены заказчику");
             await LoadAll();
@@ -222,6 +176,7 @@ namespace ParamonovDesktop.ViewModel
                 MessageBox.Show("Выберите задачу");
                 return;
             }
+
             await _taskService.Update(SelectedTask);
             MessageBox.Show("Фактические часы сохранены");
             await LoadAll();

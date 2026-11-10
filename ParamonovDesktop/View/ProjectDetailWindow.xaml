@@ -5,12 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ParamonovDesktop.View"
         mc:Ignorable="d"
-        Title="Карточка проекта" Height="700" Width="800">
-    <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries/>
-        </ResourceDictionary>
-    </Window.Resources>
+        Title="Карточка проекта" Height="700" Width="800"  FontFamily="Consolas">
+    <Window.Background>
+        <ImageBrush ImageSource="/Resources/paramonov_ui_bg.jpg" 
+                Stretch="UniformToFill"/>
+    </Window.Background>
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -18,28 +17,33 @@
             <RowDefinition Height="250"/>
         </Grid.RowDefinitions>
 
+        <!-- Шапка -->
         <TextBlock Grid.Row="0" FontSize="22" FontWeight="Bold" Margin="0 0 0 10">
             <Run Text="Проект: "/>
             <Run Text="{Binding Project.Name}"/>
         </TextBlock>
 
+        <!-- Основная область -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
 
-            <GroupBox Grid.Column="0" Header="Техническое задание" Margin="0 0 5 0">
+            <!-- Левая часть: ТЗ -->
+            <GroupBox Grid.Column="0" Header="Техническое задание" Margin="0 0 5 0" FontSize="16">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
+
                     <TextBlock Grid.Row="0" Text="{Binding Project.Description}"
                                TextWrapping="Wrap" Margin="5"/>
+
                     <ListBox Grid.Row="1" ItemsSource="{Binding SpecItems}"
-                             SelectedItem="{Binding SelectedSpecItem}" Margin="5">
+                             SelectedItem="{Binding SelectedSpecItem}" Margin="5" Background="BlanchedAlmond">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Margin="3">
@@ -49,64 +53,107 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    <Button Grid.Row="2" Content="Сохранить и отправить менеджеру"
+
+                    <!-- Кнопка видна ТОЛЬКО заказчику -->
+                    <Button Grid.Row="2"
+                            Content="Сохранить и отправить менеджеру"
                             Command="{Binding SaveSpecAndSendCommand}"
-                            IsEnabled="{Binding CanEditSpec}" Margin="5"/>
+                            IsEnabled="{Binding CanSaveSpecAndSendEnabled}"
+                            Visibility="{Binding CanEditSpecVisible, Converter={StaticResource BoolToVisibility}}"
+                            Margin="5" Background="RoyalBlue" FontWeight="Bold" Foreground="BlanchedAlmond"/>
                 </Grid>
             </GroupBox>
 
-            <GroupBox Grid.Column="1" Header="Счет и задачи" Margin="5 0 0 0">
+            <!-- Правая часть: Счет и задачи -->
+            <GroupBox Grid.Column="1" Header="Счет и задачи" Margin="5 0 0 0" FontSize="16">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
+
                     <DataGrid Grid.Row="0" ItemsSource="{Binding Tasks}"
                               SelectedItem="{Binding SelectedTask}"
-                              AutoGenerateColumns="False" CanUserAddRows="False" Margin="5">
+                              AutoGenerateColumns="False" CanUserAddRows="False" Margin="5" Background="BlanchedAlmond">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Описание" Binding="{Binding Description}" Width="*"/>
-                            <DataGridTextColumn Header="План, ч" Binding="{Binding PlannedHours}" Width="70"/>
-                            <DataGridTextColumn Header="Факт, ч" Binding="{Binding ActualHours}" Width="70"
-                                                IsReadOnly="{Binding DataContext.CanEditHours, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
-                            <DataGridTextColumn Header="Стоимость" Binding="{Binding Cost}" Width="100"
-                                                IsReadOnly="{Binding DataContext.CanEditTasks, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                            <DataGridTextColumn Header="Описание"
+                                                Binding="{Binding Description}" Width="*"/>
+
+                            <DataGridTextColumn Header="План, ч"
+                                                Binding="{Binding PlannedHours}" Width="70"/>
+
+                            <!-- Факт. часы редактирует только разработчик -->
+                            <DataGridTextColumn Header="Факт, ч"
+                                                Binding="{Binding ActualHours}" Width="70"
+                                                IsReadOnly="{Binding DataContext.CanEditHoursVisible,
+                                                    RelativeSource={RelativeSource AncestorType=DataGrid},
+                                                    Converter={StaticResource InverseBool}}"/>
+
+                            <!-- Стоимость редактирует только менеджер -->
+                            <DataGridTextColumn Header="Стоимость"
+                                                Binding="{Binding Cost}" Width="100"
+                                                IsReadOnly="{Binding DataContext.CanEditTasksVisible,
+                                                    RelativeSource={RelativeSource AncestorType=DataGrid},
+                                                    Converter={StaticResource InverseBool}}"/>
                         </DataGrid.Columns>
                     </DataGrid>
+
                     <StackPanel Grid.Row="1" Orientation="Horizontal"
                                 HorizontalAlignment="Right" Margin="5">
-                        <Button Content="Сохранить часы" Command="{Binding SaveHoursCommand}"
-                                IsEnabled="{Binding CanEditHours}" Width="130" Margin="0 0 5 0"/>
-                        <Button Content="Сохранить и отправить" Command="{Binding SaveTaskAndSendCommand}"
-                                IsEnabled="{Binding CanEditTasks}" Width="160"/>
+
+                        <!-- Кнопка видна ТОЛЬКО разработчику -->
+                        <Button Content="Сохранить часы"
+                                Command="{Binding SaveHoursCommand}"
+                                IsEnabled="{Binding CanSaveHoursEnabled}"
+                                Visibility="{Binding CanEditHoursVisible, Converter={StaticResource BoolToVisibility}}"
+                                Width="130" Margin="0 0 5 0" Background="BlanchedAlmond" FontWeight="Bold"/>
+
+                        <!-- Кнопка видна ТОЛЬКО менеджеру -->
+                        <Button Content="Сохранить и отправить"
+                                Command="{Binding SaveTaskAndSendCommand}"
+                                IsEnabled="{Binding CanSaveTaskAndSendEnabled}"
+                                Visibility="{Binding CanEditTasksVisible, Converter={StaticResource BoolToVisibility}}"
+                                Width="200" Background="RoyalBlue" FontWeight="Bold" Foreground="BlanchedAlmond"/>
                     </StackPanel>
                 </Grid>
             </GroupBox>
         </Grid>
 
-        <GroupBox Grid.Row="2" Header="Запросы на изменения" Margin="0 10 0 0">
+        <!-- Запросы на изменения -->
+        <GroupBox Grid.Row="2" Header="Запросы на изменения" Margin="0 10 0 0" FontSize="16">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
+
                 <ListBox Grid.Row="0" ItemsSource="{Binding ChangeRequests}"
-                         SelectedItem="{Binding SelectedChange}">
+                         SelectedItem="{Binding SelectedChange}" Background="BlanchedAlmond">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Margin="3">
-                                <TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="0 0 10 0"/>
+                                <TextBlock Text="{Binding Name}" FontWeight="Bold"
+                                           Margin="0 0 10 0"/>
                                 <TextBlock Text="{Binding Description}" Foreground="Gray"/>
                             </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
+
                 <StackPanel Grid.Row="1" Orientation="Horizontal"
                             HorizontalAlignment="Right" Margin="5">
-                    <Button Content="Принять" Command="{Binding ApproveChangeCommand}"
-                            IsEnabled="{Binding CanApproveChanges}" Width="100" Margin="0 0 5 0"/>
-                    <Button Content="Отклонить" Command="{Binding RejectChangeCommand}"
-                            IsEnabled="{Binding CanApproveChanges}" Width="100"/>
+
+                    <!-- Кнопки видны менеджеру и заказчику -->
+                    <Button Content="ОТКЛОНИТЬ"
+                        Command="{Binding RejectChangeCommand}"
+                        IsEnabled="{Binding CanApproveChangeEnabled}"
+                        Visibility="{Binding CanApproveChangesVisible, Converter={StaticResource BoolToVisibility}}"
+                        Width="120" Margin="0 0 10 0" Background="BlanchedAlmond" FontSize="20" FontWeight="Bold"/>
+                    <Button Content="ПРИНЯТЬ"
+                            Command="{Binding ApproveChangeCommand}"
+                            IsEnabled="{Binding CanApproveChangeEnabled}"
+                            Visibility="{Binding CanApproveChangesVisible, Converter={StaticResource BoolToVisibility}}"
+                            Width="100" FontSize="20" Background="RoyalBlue" FontWeight="Bold" Foreground="BlanchedAlmond"/>
                 </StackPanel>
             </Grid>
         </GroupBox>

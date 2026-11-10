@@ -13,10 +13,36 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\paramonov_ui_bg.jpg" />
+    <None Remove="Resources\paramonov_ui_cat.png" />
+    <None Remove="Resources\paramonov_ui_comp.png" />
+    <None Remove="Resources\paramonov_ui_folders.png" />
+    <None Remove="Resources\paramonov_ui_paper.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.161" />
     <PackageReference Include="Prism.Core" Version="9.0.537" />
     <PackageReference Include="Prism.Events" Version="9.0.537" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\paramonov_ui_bg.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\paramonov_ui_cat.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\paramonov_ui_comp.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\paramonov_ui_folders.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\paramonov_ui_paper.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>

@@ -5,24 +5,30 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ParamonovDesktop.View"
         mc:Ignorable="d"
-        Title="Проекты" Height="450" Width="800">
+        Title="Проекты" Height="450" Width="800" FontFamily="Consolas">
+    <Window.Background>
+        <ImageBrush ImageSource="/Resources/paramonov_ui_bg.jpg" 
+                    Stretch="UniformToFill"/>
+    </Window.Background>
     <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-
-        <TextBlock Grid.Row="0" Text="Доступные проекты" FontSize="22" Margin="0 0 0 10"/>
+        <StackPanel Orientation="Horizontal" Grid.Row="0">
+            <TextBlock Grid.Row="0" Text="Доступные проекты"  FontSize="35" Margin="10"  FontWeight="ExtraBold"/>
+        </StackPanel>
+       
 
         <ListBox Grid.Row="1" ItemsSource="{Binding Projects}"
-                 SelectedItem="{Binding SelectedProject}">
+                 SelectedItem="{Binding SelectedProject}" Background="Transparent">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Orientation="Vertical" Margin="5">
-                        <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16"/>
-                        <TextBlock Text="{Binding Description}" Foreground="Gray"/>
-                        <TextBlock Text="{Binding Status, StringFormat='Статус: {0}'}"/>
+                    <StackPanel Orientation="Vertical" Margin="5"  Background="BlanchedAlmond" Width="730">
+                        <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Margin="10"/>
+                        <TextBlock Text="{Binding Description}" Margin="10"/>
+                        <TextBlock Text="{Binding Status, StringFormat='Статус: {0}'}" Margin="10"/>
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
@@ -30,10 +36,10 @@
 
         <StackPanel Grid.Row="2" Orientation="Horizontal"
                     HorizontalAlignment="Right" Margin="0 10 0 0">
-            <Button Content="Обновить" Command="{Binding LoadProjectsCommand}"
-                    Width="100" Margin="0 0 10 0"/>
-            <Button Content="Открыть" Command="{Binding OpenProjectCommand}"
-                    Width="100"/>
+            <Button Content="ОБНОВИТЬ" Command="{Binding LoadProjectsCommand}"
+                    Width="120" Margin="0 0 10 0" Background="BlanchedAlmond" FontSize="20" FontWeight="Bold"/>
+            <Button Content="ОТКРЫТЬ" Command="{Binding OpenProjectCommand}"
+                    Width="120" FontSize="20" Background="RoyalBlue" FontWeight="Bold" Foreground="BlanchedAlmond"/>
         </StackPanel>
     </Grid>
 </Window>
