@@ -26,28 +26,28 @@
         <TextBlock Grid.Row="0" Text="Регистрация" FontSize="30"
                    HorizontalAlignment="Center" Margin="0 0 0 15" FontWeight="ExtraBold"/>
 
-        <Label Grid.Row="1" Content="Имя *" FontSize="20"/>
+        <Label Grid.Row="1" Content="Имя*" FontSize="20"/>
         <TextBox Grid.Row="2" Margin="0 0 0 8"
                  Text="{Binding FirstName, UpdateSourceTrigger=PropertyChanged}" FontSize="20" Background="BlanchedAlmond"/>
 
-        <Label Grid.Row="3" Content="Фамилия *" FontSize="20"/>
+        <Label Grid.Row="3" Content="Фамилия*" FontSize="20"/>
         <TextBox Grid.Row="4" Margin="0 0 0 8"
                  Text="{Binding LastName, UpdateSourceTrigger=PropertyChanged}" FontSize="20" Background="BlanchedAlmond"/>
 
-        <Label Grid.Row="5" Content="Логин *" FontSize="20"/>
+        <Label Grid.Row="5" Content="Логин*" FontSize="20"/>
         <TextBox Grid.Row="6" Margin="0 0 0 8"
                  Text="{Binding Login, UpdateSourceTrigger=PropertyChanged}" FontSize="20" Background="BlanchedAlmond"/>
 
-        <Label Grid.Row="7" Content="Пароль *" FontSize="20"/>
+        <Label Grid.Row="7" Content="Пароль*" FontSize="20"/>
         <PasswordBox Grid.Row="8" Margin="0 0 0 8"
                      PasswordChanged="PasswordBox_OnPasswordChanged" FontSize="20" Background="BlanchedAlmond"/>
 
-        <Label Grid.Row="9" Content="Повторите пароль *" FontSize="20"/>
+        <Label Grid.Row="9" Content="Повторите пароль*" FontSize="20"/>
         <PasswordBox Grid.Row="10" Margin="0 0 0 8"
                      PasswordChanged="PasswordConfirmBox_OnPasswordChanged" FontSize="20" Background="BlanchedAlmond"/>
 
         <StackPanel Grid.Row="11">
-            <Label Content="Роль *" FontSize="20"/>
+            <Label Content="Роль*" FontSize="20"/>
             <ComboBox SelectedIndex="{Binding SelectedRoleIndex}" FontSize="20" Background="BlanchedAlmond">
                 <ComboBoxItem Content="Заказчик" Background="BlanchedAlmond"/>
                 <ComboBoxItem Content="Менеджер" Background="BlanchedAlmond"/>
