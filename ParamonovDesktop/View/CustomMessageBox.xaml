@@ -9,14 +9,16 @@
     <Grid>
         <Grid Margin="16">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" Orientation="Vertical">
+                <TextBlock Text="{Binding MessageText}" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16"/>
+                <Image Grid.Row="6" Source="/Resources/paramonov_ui_packman.png" Width="60" Height="60" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+            </StackPanel>
+            
 
-            <TextBlock Text="{Binding MessageText}" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="20"/>
-
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
                 <Button Content="ОТМЕНА" IsCancel="True" Click="CancelButton_Click" Width="70" Margin="0,0,8,0" Background="BlanchedAlmond" FontWeight="Bold"/>
                 <Button Content="OK" IsDefault="True" Click="OkButton_Click" Width="70" Background="RoyalBlue" FontWeight="Bold" Foreground="BlanchedAlmond"/>
                

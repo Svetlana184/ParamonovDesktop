@@ -17,7 +17,14 @@
     <None Remove="Resources\paramonov_ui_cat.png" />
     <None Remove="Resources\paramonov_ui_comp.png" />
     <None Remove="Resources\paramonov_ui_folders.png" />
+    <None Remove="Resources\paramonov_ui_packman.png" />
     <None Remove="Resources\paramonov_ui_paper.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\paramonov_ui_packman.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>
