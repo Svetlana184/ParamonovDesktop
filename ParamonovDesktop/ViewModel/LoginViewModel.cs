@@ -12,7 +12,7 @@ using System.Windows;
 
 namespace ParamonovDesktop.ViewModel
 {
-    public class LoginViewModel : ObservableObject
+    public partial class LoginViewModel : ObservableObject
     {
         private readonly LoginService _loginService;
         private readonly LoginWindow _window;

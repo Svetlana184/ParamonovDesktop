@@ -13,7 +13,7 @@ using System.Windows;
 
 namespace ParamonovDesktop.ViewModel
 {
-    public class ProjectsViewModel : ObservableObject
+    public partial class ProjectsViewModel : ObservableObject
     {
         private readonly ProjectService _projectService;
         private readonly ProjectsWindow _window;
