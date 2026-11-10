@@ -25,10 +25,10 @@
                  SelectedItem="{Binding SelectedProject}" Background="Transparent">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Orientation="Vertical" Margin="5"  Background="BlanchedAlmond" Width="730">
+                    <StackPanel Orientation="Vertical" Margin="5"  Background="BlanchedAlmond" Width="730" HorizontalAlignment="Left">
                         <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Margin="10"/>
                         <TextBlock Text="{Binding Description}" Margin="10"/>
-                        <TextBlock Text="{Binding Status, StringFormat='Статус: {0}'}" Margin="10"/>
+                        <TextBlock Text="{Binding StatusText, StringFormat='Статус: {0}'}" Margin="10" Background="RoyalBlue" Padding="5" Foreground="BlanchedAlmond" Width="200" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>

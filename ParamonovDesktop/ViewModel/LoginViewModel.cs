@@ -50,7 +50,6 @@ namespace ParamonovDesktop.ViewModel
             if (string.IsNullOrWhiteSpace(Login) || string.IsNullOrWhiteSpace(Password))
             {
                 CustomMessageBox.Show("Введите логин и пароль");
-                //MessageBox.Show("Введите логин и пароль");
                 return;
             }
 

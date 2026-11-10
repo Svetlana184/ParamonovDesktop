@@ -53,12 +53,12 @@ namespace ParamonovDesktop.ViewModel
         }
 
         [RelayCommand]
-        public async Task LoadProjects()
+        private async Task LoadProjects()
         {
             IsLoading = true;
-            var list = await _projectService.GetProjects();
+            var list = await _projectService.GetMyProjects();
             Projects = new ObservableCollection<Project>(
-                list != null ? list : new List<Project>());
+                list ?? new List<Project>());
             IsLoading = false;
         }
 

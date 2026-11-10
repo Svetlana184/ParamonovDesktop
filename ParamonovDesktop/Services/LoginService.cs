@@ -22,8 +22,7 @@ namespace ParamonovDesktop.Services
 
                 string text = await response.Content.ReadAsStringAsync();
                 var resp = JsonSerializer.Deserialize<LoginResponse>(text, JsonOptions);
-                if (resp != null)
-                    Token = resp.AccessToken;
+                Token = resp != null ? resp.AccessToken : null;
                 return resp;
             }
         }

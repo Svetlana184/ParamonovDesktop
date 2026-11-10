@@ -25,6 +25,18 @@ namespace ParamonovDesktop.Services
             }
         }
 
+        public async Task<List<Project>> GetMyProjects()
+        {
+            using (var request = CreateRequest(HttpMethod.Get, BaseUrl + "/api/project/my"))
+            using (var response = await Client.SendAsync(request))
+            {
+                if (response.StatusCode != HttpStatusCode.OK) return null;
+
+                string text = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<List<Project>>(text, JsonOptions);
+            }
+        }
+
         public async Task<Project> GetProject(int id)
         {
             using (var request = CreateRequest(HttpMethod.Get, BaseUrl + "/api/project/" + id))
