@@ -7,99 +7,97 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
 
 namespace ParamonovDesktop.ViewModel
 {
-    public class ProjectsViewModel : ObservableObject
+    public partial class ProjectsViewModel : ObservableObject
     {
         private readonly ProjectService _projectService;
         private readonly ProjectsWindow _window;
 
-        private List<Project> _allProjects = new List<Project>();
+        private List<Project> _allProjects = new();
 
-        private ObservableCollection<Project> _projects = new ObservableCollection<Project>();
+        private ObservableCollection<Project> _projects = new();
         public ObservableCollection<Project> Projects
         {
-            get { return _projects; }
-            set { SetProperty(ref _projects, value); }
+            get => _projects;
+            set
+            {
+                _projects = value;
+                OnPropertyChanged(nameof(Projects));
+            }
         }
 
         private Project _selectedProject;
         public Project SelectedProject
         {
-            get { return _selectedProject; }
+            get => _selectedProject;
             set
             {
-                SetProperty(ref _selectedProject, value);
-                OnPropertyChanged(nameof(CanOpenProject));
-
-                // ⚠️ Пересчитать CanExecute для OpenProjectCommand
-                var openCmd = OpenProjectCommand as IRelayCommand;
-                if (openCmd != null) openCmd.NotifyCanExecuteChanged();
+                _selectedProject = value;
+                OnPropertyChanged(nameof(SelectedProject));
             }
         }
 
         private bool _isLoading;
         public bool IsLoading
         {
-            get { return _isLoading; }
-            set { SetProperty(ref _isLoading, value); }
+            get => _isLoading;
+            set
+            {
+                _isLoading = value;
+                OnPropertyChanged(nameof(IsLoading));
+            }
         }
 
         private string _selectedStatusFilter = "all";
         public string SelectedStatusFilter
         {
-            get { return _selectedStatusFilter; }
+            get => _selectedStatusFilter;
             set
             {
-                SetProperty(ref _selectedStatusFilter, value);
+                _selectedStatusFilter = value;
+                OnPropertyChanged(nameof(SelectedStatusFilter));
                 ApplyFilter();
             }
         }
 
-        public bool IsCustomer
-        {
-            get
-            {
-                return App.CurrentUser != null &&
-                       !string.IsNullOrEmpty(App.CurrentUser.Role) &&
-                       App.CurrentUser.Role.Equals("customer", StringComparison.OrdinalIgnoreCase);
-            }
-        }
+        public bool IsCustomer =>
+            App.CurrentUser != null &&
+            !string.IsNullOrEmpty(App.CurrentUser.Role) &&
+            App.CurrentUser.Role.Equals("customer", StringComparison.OrdinalIgnoreCase);
 
-        public bool CanOpenProject
-        {
-            get { return SelectedProject != null; }
-        }
-
-        // === Команды ===
-        public IRelayCommand LoadProjectsCommand { get; private set; }
-        public IRelayCommand OpenProjectCommand { get; private set; }
-        public IRelayCommand CreateProjectCommand { get; private set; }
-        public IRelayCommand<string> SetStatusFilterCommand { get; private set; }
+        public bool CanOpenProject => SelectedProject != null;
 
         public ProjectsViewModel(ProjectsWindow window)
         {
             _window = window;
             _projectService = new ProjectService();
 
-            LoadProjectsCommand = new AsyncRelayCommand(LoadProjects);
-            OpenProjectCommand = new RelayCommand(OpenProject, () => SelectedProject != null);
-            CreateProjectCommand = new AsyncRelayCommand(CreateProject);
-            SetStatusFilterCommand = new RelayCommand<string>(SetFilter);
-
-            var _ = LoadProjects();
+            LoadData();
         }
 
-        private void SetFilter(string status)
+        private async void LoadData()
+        {
+            try
+            {
+                await LoadProjects();
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox.Show($"Ошибка загрузки данных: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
+        private void SetStatusFilter(string status)
         {
             SelectedStatusFilter = status ?? "all";
         }
 
+        [RelayCommand]
         private async Task LoadProjects()
         {
             IsLoading = true;
@@ -115,12 +113,12 @@ namespace ParamonovDesktop.ViewModel
 
             if (SelectedStatusFilter != "all")
                 filtered = filtered.Where(p =>
-                    string.Equals(p.Status, SelectedStatusFilter,
-                        StringComparison.OrdinalIgnoreCase));
+                    string.Equals(p.Status, SelectedStatusFilter, StringComparison.OrdinalIgnoreCase));
 
             Projects = new ObservableCollection<Project>(filtered);
         }
 
+        [RelayCommand]
         private void OpenProject()
         {
             if (SelectedProject == null)
@@ -141,6 +139,7 @@ namespace ParamonovDesktop.ViewModel
             }
         }
 
+        [RelayCommand]
         private async Task CreateProject()
         {
             if (!IsCustomer)

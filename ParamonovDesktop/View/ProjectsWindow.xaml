@@ -60,7 +60,7 @@
                     DockPanel.Dock="Right">
                 <Button Content="ОБНОВИТЬ" Command="{Binding LoadProjectsCommand}"
                     Width="120" Margin="0 0 10 0" Background="BlanchedAlmond" FontSize="20" FontWeight="Bold"/>
-                <Button Content="ОТКРЫТЬ" Command="{Binding OpenProjectCommand}" IsEnabled="{Binding CanOpenProject}"
+                <Button Content="ОТКРЫТЬ" Command="{Binding OpenProjectCommand}"
                     Width="120" FontSize="20" Background="RoyalBlue" FontWeight="Bold" Foreground="BlanchedAlmond"/>
             </StackPanel>
         </DockPanel>

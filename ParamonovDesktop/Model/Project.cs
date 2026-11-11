@@ -30,6 +30,7 @@ namespace ParamonovDesktop.Model
                     default: return "Неизвестно";
                 }
             }
+            set { }
         }
         public bool CanEditStatus
         {

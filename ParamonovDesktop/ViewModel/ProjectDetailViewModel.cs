@@ -2,17 +2,19 @@
 using CommunityToolkit.Mvvm.Input;
 using ParamonovDesktop.Model;
 using ParamonovDesktop.Services;
+using ParamonovDesktop.View;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Input;
 
 namespace ParamonovDesktop.ViewModel
 {
-    public class ProjectDetailViewModel : ObservableObject
+    public partial class ProjectDetailViewModel : ObservableObject
     {
         private readonly ProjectService _projectService = new ProjectService();
         private readonly SpecService _specService = new SpecService();
@@ -25,245 +27,329 @@ namespace ParamonovDesktop.ViewModel
         private readonly string _role;
         private readonly int _userId;
 
+
+        private string headerTeamVisibility;
+        public string HeaderTeamVisibility
+        {
+            get { return headerTeamVisibility; }
+            set
+            {
+                headerTeamVisibility = value;
+                OnPropertyChanged(nameof(HeaderTeamVisibility));
+            }
+        }
+
+        private string headerSelectTeamVisibility;
+        public string HeaderSelectTeamVisibility
+        {
+            get { return headerSelectTeamVisibility; }
+            set
+            {
+                headerSelectTeamVisibility = value;
+                OnPropertyChanged(nameof(HeaderSelectTeamVisibility));
+            }
+        }
+
+        private string changeRequestsVisibility;
+        public string ChangeRequestsVisibility
+        {
+            get { return changeRequestsVisibility; }
+            set
+            {
+                changeRequestsVisibility = value;
+                OnPropertyChanged(nameof(ChangeRequestsVisibility));
+            }
+        }
+
+        private string closeButtonsVisibility;
+        public string CloseButtonsVisibility
+        {
+            get { return closeButtonsVisibility; }
+            set
+            {
+                closeButtonsVisibility = value;
+                OnPropertyChanged(nameof(CloseButtonsVisibility));
+            }
+        }
+
+        private string refrozeButtonVisibility;
+        public string RefrozeButtonVisibility
+        {
+            get { return refrozeButtonVisibility; }
+            set
+            {
+                refrozeButtonVisibility = value;
+                OnPropertyChanged(nameof(RefrozeButtonVisibility));
+            }
+        }
+
+        private bool headerTextEditable;
+        public bool HeaderTextEditable
+        {
+            get { return headerTextEditable; }
+            set
+            {
+                headerTextEditable = value;
+                OnPropertyChanged(nameof(HeaderTextEditable));
+            }
+        }
+
+        private bool headerSelectTeamEditable;
+        public bool HeaderSelectTeamEditable
+        {
+            get { return headerSelectTeamEditable; }
+            set
+            {
+                headerSelectTeamEditable = value;
+                OnPropertyChanged(nameof(HeaderSelectTeamEditable));
+            }
+        }
+
+        private bool technicalSpecificationEditable;
+        public bool TechnicalSpecificationEditable
+        {
+            get { return technicalSpecificationEditable; }
+            set
+            {
+                technicalSpecificationEditable = value;
+                OnPropertyChanged(nameof(TechnicalSpecificationEditable));
+            }
+        }
+
+        private bool invoiceEditable;
+        public bool InvoiceEditable
+        {
+            get { return invoiceEditable; }
+            set
+            {
+                invoiceEditable = value;
+                OnPropertyChanged(nameof(InvoiceEditable));
+            }
+        }
+
+        private bool closeButtonsEditable;
+        public bool CloseButtonsEditable
+        {
+            get { return closeButtonsEditable; }
+            set
+            {
+                closeButtonsEditable = value;
+                OnPropertyChanged(nameof(CloseButtonsEditable));
+            }
+        }
+       
+
         public ProjectDetailViewModel(int projectId)
         {
             _projectId = projectId;
             _role = App.CurrentUser != null ? App.CurrentUser.Role : "customer";
             _userId = App.CurrentUser != null ? App.CurrentUser.IdUser : 0;
-
-            LoadAllCommand = new AsyncRelayCommand(LoadAll);
-            AddSpecItemCommand = new AsyncRelayCommand(AddSpecItem);
-            DeleteSpecItemCommand = new AsyncRelayCommand(DeleteSpecItem);
-            SaveSpecItemCommand = new AsyncRelayCommand(SaveSpecItem);
-            AssignTeamCommand = new AsyncRelayCommand(AssignTeam);
-            AddTaskCommand = new AsyncRelayCommand(AddTask);
-            DeleteTaskCommand = new AsyncRelayCommand(DeleteTask);
-            SaveTaskCommand = new AsyncRelayCommand(SaveTask);
-            SendInvoiceForReviewCommand = new AsyncRelayCommand(SendInvoiceForReview);
-            ApproveChangeCommand = new AsyncRelayCommand(ApproveChange);
-            RejectChangeCommand = new AsyncRelayCommand(RejectChange);
-            FinishApprovalCommand = new AsyncRelayCommand(FinishApproval);
-            CloseProjectCommand = new AsyncRelayCommand(CloseProject);
-            FreezeProjectCommand = new AsyncRelayCommand(FreezeProject);
-
-            var _ = LoadAll();
+            LoadData();
+            AnalyzeStatus();
         }
+
+        private async void LoadData()
+        {
+            try
+            {
+                await LoadAll();
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox.Show($"Ошибка загрузки данных: {ex.Message}");
+            }
+        }
+
+        
 
         // === Свойства ===
         private Project _project;
         public Project Project
         {
-            get { return _project; }
+            get => _project;
             set
             {
                 SetProperty(ref _project, value);
-                RaiseAllVisibility();
             }
         }
 
-        private ObservableCollection<SpecItem> _specItems = new ObservableCollection<SpecItem>();
+        private ObservableCollection<SpecItem> _specItems = new();
         public ObservableCollection<SpecItem> SpecItems
         {
-            get { return _specItems; }
-            set { SetProperty(ref _specItems, value); }
+            get => _specItems;
+            set => SetProperty(ref _specItems, value);
         }
 
-        private ObservableCollection<TaskItem> _tasks = new ObservableCollection<TaskItem>();
+        private ObservableCollection<TaskItem> _tasks = new();
         public ObservableCollection<TaskItem> Tasks
         {
-            get { return _tasks; }
-            set { SetProperty(ref _tasks, value); }
+            get => _tasks;
+            set => SetProperty(ref _tasks, value);
         }
 
-        private ObservableCollection<ChangeRequest> _changeRequests = new ObservableCollection<ChangeRequest>();
+        private ObservableCollection<ChangeRequest> _changeRequests = new();
         public ObservableCollection<ChangeRequest> ChangeRequests
         {
-            get { return _changeRequests; }
-            set { SetProperty(ref _changeRequests, value); }
+            get => _changeRequests;
+            set => SetProperty(ref _changeRequests, value);
         }
 
-        private ObservableCollection<CompanyItem> _companies = new ObservableCollection<CompanyItem>();
+        private ObservableCollection<CompanyItem> _companies = new();
         public ObservableCollection<CompanyItem> Companies
         {
-            get { return _companies; }
-            set { SetProperty(ref _companies, value); }
+            get => _companies;
+            set => SetProperty(ref _companies, value);
         }
 
-        private ObservableCollection<TeamItem> _teams = new ObservableCollection<TeamItem>();
+        private ObservableCollection<TeamItem> _teams = new();
         public ObservableCollection<TeamItem> Teams
         {
-            get { return _teams; }
-            set { SetProperty(ref _teams, value); }
+            get => _teams;
+            set => SetProperty(ref _teams, value);
         }
 
         private CompanyItem _selectedCompany;
         public CompanyItem SelectedCompany
         {
-            get { return _selectedCompany; }
-            set { SetProperty(ref _selectedCompany, value); }
+            get => _selectedCompany;
+            set => SetProperty(ref _selectedCompany, value);
         }
 
         private TeamItem _selectedTeam;
         public TeamItem SelectedTeam
         {
-            get { return _selectedTeam; }
-            set { SetProperty(ref _selectedTeam, value); }
+            get => _selectedTeam;
+            set
+            {
+                SetProperty(ref _selectedTeam, value);
+            }
         }
 
         private SpecItem _selectedSpecItem;
         public SpecItem SelectedSpecItem
         {
-            get { return _selectedSpecItem; }
-            set { SetProperty(ref _selectedSpecItem, value); }
+            get => _selectedSpecItem;
+            set
+            {
+                SetProperty(ref _selectedSpecItem, value);
+            }
         }
 
         private TaskItem _selectedTask;
         public TaskItem SelectedTask
         {
-            get { return _selectedTask; }
-            set { SetProperty(ref _selectedTask, value); }
+            get => _selectedTask;
+            set
+            {
+                SetProperty(ref _selectedTask, value);
+            }
         }
 
         private ChangeRequest _selectedChange;
         public ChangeRequest SelectedChange
         {
-            get { return _selectedChange; }
-            set { SetProperty(ref _selectedChange, value); }
+            get => _selectedChange;
+            set
+            {
+                SetProperty(ref _selectedChange, value);
+            }
         }
 
         // === Информация о заказчике и команде ===
         private string _customerInfo;
         public string CustomerInfo
         {
-            get { return _customerInfo; }
-            set { SetProperty(ref _customerInfo, value); }
+            get => _customerInfo;
+            set => SetProperty(ref _customerInfo, value);
         }
 
         private string _teamInfo;
         public string TeamInfo
         {
-            get { return _teamInfo; }
-            set { SetProperty(ref _teamInfo, value); }
+            get => _teamInfo;
+            set => SetProperty(ref _teamInfo, value);
         }
 
         // === Роли ===
-        public bool IsCustomer { get { return _role.Equals("customer", StringComparison.OrdinalIgnoreCase); } }
-        public bool IsManager { get { return _role.Equals("manager", StringComparison.OrdinalIgnoreCase); } }
-        public bool IsDeveloper { get { return _role.Equals("developer", StringComparison.OrdinalIgnoreCase); } }
+        public bool IsCustomer => _role.Equals("customer", StringComparison.OrdinalIgnoreCase);
+        public bool IsManager => _role.Equals("manager", StringComparison.OrdinalIgnoreCase);
+        public bool IsDeveloper => _role.Equals("developer", StringComparison.OrdinalIgnoreCase);
 
-        // === Видимость / активность ===
-        public bool IsDraft { get { return Project != null && Project.Status == "draft"; } }
-        public bool IsInProgress { get { return Project != null && Project.Status == "in_progress"; } }
-        public bool IsPendingApproval { get { return Project != null && Project.Status == "pending_approval"; } }
-        public bool IsFrozen { get { return Project != null && Project.Status == "frozen"; } }
-        public bool IsEditable
-        {
-            get { return Project != null && Project.Status != "completed" && Project.Status != "closed"; }
-        }
+        // === Статусы проекта ===
+        public bool IsDraft => Project != null && Project.Status == "draft";
+        public bool IsInProgress => Project != null && Project.Status == "in_progress";
+        public bool IsPendingApproval => Project != null && Project.Status == "pending_approval";
+        public bool IsFrozen => Project != null && Project.Status == "frozen";
+        public bool IsEditable => Project != null && Project.Status != "completed" && Project.Status != "closed";
 
-        // ТЗ: только заказчик в draft
-        public bool CanEditSpec
-        {
-            get { return IsCustomer && IsDraft; }
-        }
 
-        // Назначить команду: только заказчик в draft
-        public bool CanAssignTeam
+        private void AnalyzeStatus()
         {
-            get { return IsCustomer && IsDraft && SelectedTeam != null; }
-        }
-
-        // Редактировать счёт: manager в in_progress
-        public bool CanEditInvoice
-        {
-            get { return IsManager && IsInProgress; }
-        }
-
-        // Редактировать задачи:
-        // - developer в in_progress
-        // - manager в in_progress
-        // - developer в pending_approval может редактировать только ActualHours (это в XAML через IsReadOnly)
-        public bool CanEditTasks
-        {
-            get
+            HeaderTextEditable = false;
+            HeaderTeamVisibility = "Visible";
+            HeaderSelectTeamEditable = false;
+            HeaderSelectTeamVisibility = "Hidden";
+            ChangeRequestsVisibility = "Visible";
+            TechnicalSpecificationEditable = false;
+            InvoiceEditable = false;
+            CloseButtonsVisibility = "Visible";
+            RefrozeButtonVisibility = "Hidden";
+            if (IsDraft)
             {
-                if (Project == null) return false;
-                if (Project.Status == "in_progress" && (IsManager || IsDeveloper)) return true;
-                if (Project.Status == "pending_approval" && IsDeveloper) return true;
-                return false;
+                ChangeRequestsVisibility = "Hidden";
+                if (_role == "customer")
+                {
+                    TechnicalSpecificationEditable = true;
+                    HeaderTextEditable = true;
+                    HeaderSelectTeamEditable = true;
+                    HeaderSelectTeamVisibility = "Visible";
+                    
+                }
             }
+            else if (IsInProgress)
+            {
+                if (_role == "customer")
+                {
+                    ChangeRequestsVisibility = "Hidden";
+                }
+                else if (_role == "manager" && _role == "developer")
+                {
+                    InvoiceEditable = true;
+                }
+            }
+            else if (IsPendingApproval)
+            {
+                if (_role == "customer")
+                {
+                    TechnicalSpecificationEditable = true;
+                    HeaderTextEditable = true;
+                    HeaderSelectTeamEditable = true;
+                    HeaderSelectTeamVisibility = "Visible";
+                }
+            }
+            else if (IsFrozen)
+            {
+                RefrozeButtonVisibility = "Visible";
+                CloseButtonsVisibility = "Hidden";
+            }
+            else
+            {
+                CloseButtonsVisibility = "Hidden";
+            }
+
         }
 
-        // Кнопка «Сохранить и отправить» для менеджера (только in_progress)
-        public bool CanSendInvoiceForReview
-        {
-            get { return IsManager && IsInProgress; }
-        }
 
-        // Принимать/отклонять изменения: customer или manager в pending_approval
-        public bool CanApproveChanges
-        {
-            get { return (IsCustomer || IsManager) && IsPendingApproval; }
-        }
-
-        // «Сохранить изменения» заказчика (из pending_approval → in_progress)
-        public bool CanFinishApproval
-        {
-            get { return IsCustomer && IsPendingApproval; }
-        }
-
-        // «Закрыть проект» — customer/manager, если не completed/closed
-        public bool CanCloseProject
-        {
-            get { return (IsCustomer || IsManager) && IsEditable; }
-        }
-
-        // «Разморозить» — только customer/manager в frozen
-        public bool CanUnfreezeProject
-        {
-            get { return (IsCustomer || IsManager) && IsFrozen; }
-        }
-
-        // === Команды ===
-        public ICommand LoadAllCommand { get; private set; }
-        public ICommand AddSpecItemCommand { get; private set; }
-        public ICommand DeleteSpecItemCommand { get; private set; }
-        public ICommand SaveSpecItemCommand { get; private set; }
-        public ICommand AssignTeamCommand { get; private set; }
-        public ICommand AddTaskCommand { get; private set; }
-        public ICommand DeleteTaskCommand { get; private set; }
-        public ICommand SaveTaskCommand { get; private set; }
-        public ICommand SendInvoiceForReviewCommand { get; private set; }
-        public ICommand ApproveChangeCommand { get; private set; }
-        public ICommand RejectChangeCommand { get; private set; }
-        public ICommand FinishApprovalCommand { get; private set; }
-        public ICommand CloseProjectCommand { get; private set; }
-        public ICommand FreezeProjectCommand { get; private set; }
-
-        private void RaiseAllVisibility()
-        {
-            OnPropertyChanged(nameof(IsDraft));
-            OnPropertyChanged(nameof(IsInProgress));
-            OnPropertyChanged(nameof(IsPendingApproval));
-            OnPropertyChanged(nameof(IsFrozen));
-            OnPropertyChanged(nameof(IsEditable));
-            OnPropertyChanged(nameof(CanEditSpec));
-            OnPropertyChanged(nameof(CanAssignTeam));
-            OnPropertyChanged(nameof(CanEditInvoice));
-            OnPropertyChanged(nameof(CanEditTasks));
-            OnPropertyChanged(nameof(CanSendInvoiceForReview));
-            OnPropertyChanged(nameof(CanApproveChanges));
-            OnPropertyChanged(nameof(CanFinishApproval));
-            OnPropertyChanged(nameof(CanCloseProject));
-            OnPropertyChanged(nameof(CanUnfreezeProject));
-        }
-
+            // === Загрузка данных ===
+            [RelayCommand]
         private async Task LoadAll()
         {
             Project = await _projectService.GetProject(_projectId);
-            if (Project == null) return;
+            if (Project == null)
+            {
+                CustomMessageBox.Show("Проект не найден");
+            }
 
-            // Заказчик
             var customer = await _userService.GetUser(Project.IdCustomer);
             if (customer != null)
             {
@@ -278,7 +364,6 @@ namespace ParamonovDesktop.ViewModel
                                " (" + companyName + ")";
             }
 
-            // Команда
             if (Project.IdTeam != null)
             {
                 var teams = await _directoryService.GetTeams();
@@ -298,22 +383,19 @@ namespace ParamonovDesktop.ViewModel
                 TeamInfo = "Команда: не назначена";
             }
 
-            // ТЗ
             var items = await _specService.GetItems(_projectId);
             SpecItems = new ObservableCollection<SpecItem>(items ?? new List<SpecItem>());
 
-            // Задачи
             var allTasks = await _taskService.GetAll() ?? new List<TaskItem>();
             if (IsDeveloper)
                 Tasks = new ObservableCollection<TaskItem>(allTasks.Where(t => t.IdDeveloper == _userId));
             else
                 Tasks = new ObservableCollection<TaskItem>(allTasks);
 
-            // Изменения
             var changes = await _changeService.GetAll() ?? new List<ChangeRequest>();
-            ChangeRequests = new ObservableCollection<ChangeRequest>(changes.Where(c => c.Status == 0));
+            ChangeRequests = new ObservableCollection<ChangeRequest>(
+                changes.Where(c => c.Status == "created"));
 
-            // Компании и команды для назначения
             Companies = new ObservableCollection<CompanyItem>(
                 await _directoryService.GetCompanies() ?? new List<CompanyItem>());
             Teams = new ObservableCollection<TeamItem>(
@@ -321,10 +403,9 @@ namespace ParamonovDesktop.ViewModel
         }
 
         // === ТЗ ===
+        [RelayCommand]
         private async Task AddSpecItem()
         {
-            if (!CanEditSpec) return;
-
             var newItem = new SpecItem
             {
                 IdSpec = _projectId,
@@ -335,44 +416,46 @@ namespace ParamonovDesktop.ViewModel
 
             var created = await _specService.CreateItem(newItem);
             if (created != null)
-            {
                 await LoadAll();
-            }
         }
 
+        [RelayCommand]
         private async Task DeleteSpecItem()
         {
-            if (!CanEditSpec || SelectedSpecItem == null) return;
+            if (SelectedSpecItem == null) return;
             await _specService.DeleteItem(SelectedSpecItem.IdItem);
             await LoadAll();
         }
+        private bool CanDeleteSpecItem() => SelectedSpecItem != null;
 
+        [RelayCommand(CanExecute = nameof(CanSaveSpecItem))]
         private async Task SaveSpecItem()
         {
-            if (!CanEditSpec || SelectedSpecItem == null) return;
+            if (SelectedSpecItem == null) return;
             await _specService.UpdateItem(SelectedSpecItem);
-            MessageBox.Show("Пункт ТЗ сохранён");
+            CustomMessageBox.Show("Пункт ТЗ сохранён");
         }
+        private bool CanSaveSpecItem() => SelectedSpecItem != null;
 
         // === Назначить команду ===
+        [RelayCommand]
         private async Task AssignTeam()
         {
-            if (!CanAssignTeam) return;
-
+            if (SelectedTeam == null) return;
             Project.IdTeam = SelectedTeam.IdTeam;
             Project.Status = "in_progress";
             await _projectService.Update(Project);
-            MessageBox.Show("Команда назначена. Проект переведён в статус «В работе»");
+            CustomMessageBox.Show("Команда назначена. Проект переведён в статус «В работе»");
             await LoadAll();
         }
 
         // === Задачи ===
+        [RelayCommand]
         private async Task AddTask()
         {
-            if (!CanEditTasks) return;
             var newTask = new TaskItem
             {
-                IdTaskList = 1, // ⚠️ упрощение; лучше брать TaskList проекта
+                IdTaskList = 1,
                 Description = "Новая задача",
                 Status = 0,
                 PlannedHours = 0,
@@ -384,78 +467,97 @@ namespace ParamonovDesktop.ViewModel
             await LoadAll();
         }
 
+        [RelayCommand]
         private async Task DeleteTask()
         {
-            if (!CanEditTasks || SelectedTask == null) return;
+            if (SelectedTask == null) return;
             await _taskService.Delete(SelectedTask.IdTask);
             await LoadAll();
         }
+        private bool CanDeleteTask() => SelectedTask != null;
 
+        [RelayCommand]
         private async Task SaveTask()
         {
-            if (!CanEditTasks || SelectedTask == null) return;
+            if (SelectedTask == null) return;
             await _taskService.Update(SelectedTask);
-            MessageBox.Show("Задача сохранена");
+            CustomMessageBox.Show("Задача сохранена");
+        }
+
+        // Команда «Сохранить часы» (только факт. часы), доступна разработчику в pending_approval
+        [RelayCommand]
+        private async Task SaveHours()
+        {
+            if (SelectedTask == null)
+            {
+                CustomMessageBox.Show("Выберите задачу");
+                return;
+            }
+            await _taskService.Update(SelectedTask);
+            CustomMessageBox.Show("Часы сохранены");
         }
 
         // === Отправить счёт на проверку ===
+        [RelayCommand]
         private async Task SendInvoiceForReview()
         {
-            if (!CanSendInvoiceForReview) return;
+            var firstSpecItem = SpecItems.FirstOrDefault();
 
             await _changeService.Create(new ChangeRequest
             {
-                IdSpecItem = 1,
+                IdSpecItem = firstSpecItem?.IdItem,
                 IdTask = null,
                 Name = "Проверка счёта проекта " + Project.Name,
                 Description = "Менеджер отправил счёт на проверку",
-                Status = 0,
+                Status = "created",
                 IdCreator = _userId
             });
 
             Project.Status = "pending_approval";
             await _projectService.Update(Project);
-            MessageBox.Show("Счёт отправлен на проверку");
+            CustomMessageBox.Show("Счёт отправлен на проверку");
             await LoadAll();
         }
 
         // === Принять / отклонить изменение ===
+        [RelayCommand]
         private async Task ApproveChange()
         {
-            if (!CanApproveChanges || SelectedChange == null) return;
-            SelectedChange.Status = 1;
+            if (SelectedChange == null) return;
+            SelectedChange.Status = "approved";
             SelectedChange.IdApprover = _userId;
             await _changeService.Update(SelectedChange);
-            MessageBox.Show("Изменение одобрено");
+            CustomMessageBox.Show("Изменение одобрено");
             await LoadAll();
         }
+        private bool CanApproveChange() => SelectedChange != null;
 
+        [RelayCommand]
         private async Task RejectChange()
         {
-            if (!CanApproveChanges || SelectedChange == null) return;
-            SelectedChange.Status = 2;
+            if (SelectedChange == null) return;
+            SelectedChange.Status = "revoked";
             SelectedChange.IdApprover = _userId;
             await _changeService.Update(SelectedChange);
-            MessageBox.Show("Изменение отклонено");
+            CustomMessageBox.Show("Изменение отклонено");
             await LoadAll();
         }
+        private bool CanRejectChange() => SelectedChange != null;
 
         // === Сохранить изменения заказчика ===
+        [RelayCommand]
         private async Task FinishApproval()
         {
-            if (!CanFinishApproval) return;
-
             Project.Status = "in_progress";
             await _projectService.Update(Project);
-            MessageBox.Show("Изменения сохранены. Проект возвращён в работу");
+            CustomMessageBox.Show("Изменения сохранены. Проект возвращён в работу");
             await LoadAll();
         }
 
-        // === Закрыть / заморозить ===
+        // === Закрыть / заморозить / разморозить ===
+        [RelayCommand]
         private async Task CloseProject()
         {
-            if (!IsEditable) return;
-
             var result = MessageBox.Show(
                 "Закрыть проект окончательно? (Да = Закрыт, Нет = Закончен, Отмена = отмена)",
                 "Закрытие проекта",
@@ -465,17 +567,25 @@ namespace ParamonovDesktop.ViewModel
 
             Project.Status = result == MessageBoxResult.Yes ? "closed" : "completed";
             await _projectService.Update(Project);
-            MessageBox.Show("Проект переведён в статус «" + Project.StatusText + "»");
+            CustomMessageBox.Show("Проект переведён в статус «" + Project.StatusText + "»");
             await LoadAll();
         }
 
+        [RelayCommand(CanExecute = nameof(IsEditable))]
         private async Task FreezeProject()
         {
-            if (!IsEditable) return;
-
             Project.Status = "frozen";
             await _projectService.Update(Project);
-            MessageBox.Show("Проект заморожен");
+            CustomMessageBox.Show("Проект заморожен");
+            await LoadAll();
+        }
+
+        [RelayCommand]
+        private async Task UnfreezeProject()
+        {
+            Project.Status = "in_progress";
+            await _projectService.Update(Project);
+            CustomMessageBox.Show("Проект разморожен и возвращён в работу");
             await LoadAll();
         }
     }
