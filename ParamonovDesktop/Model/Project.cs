@@ -14,6 +14,8 @@ namespace ParamonovDesktop.Model
         public string Status { get; set; }
         public int IdCustomer { get; set; }
         public int? IdTeam { get; set; }
+        public int? IdInvoice { get; set; }
+        public decimal TotalCost { get; set; }
 
         public string StatusText
         {
@@ -23,18 +25,14 @@ namespace ParamonovDesktop.Model
                 {
                     case "draft": return "Черновик";
                     case "in_progress": return "В работе";
-                    case "pending_approval": return "Требует одобрения";
+                    case "pending_invoice_approval": return "Счёт на проверке";
+                    case "pending_spec_approval": return "ТЗ на проверке";
                     case "completed": return "Закончен";
                     case "closed": return "Закрыт";
                     case "frozen": return "Заморожен";
                     default: return "Неизвестно";
                 }
             }
-            set { }
-        }
-        public bool CanEditStatus
-        {
-            get { return Status != "completed" && Status != "closed"; }
         }
     }
 }

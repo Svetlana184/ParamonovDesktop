@@ -13,7 +13,11 @@ namespace ParamonovDesktop.View
         public ProjectDetailWindow(int projectId)
         {
             InitializeComponent();
-            DataContext = new ProjectDetailViewModel(projectId);
+            var vm = new ProjectDetailViewModel(projectId);
+            DataContext = vm;
+
+            // Вызываем публичный метод напрямую
+            Loaded += async (s, e) => await vm.LoadAllAsync();
         }
     }
 }

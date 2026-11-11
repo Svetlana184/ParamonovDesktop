@@ -14,15 +14,16 @@ namespace ParamonovDesktop.ViewModel
 {
     public partial class ProjectsViewModel : ObservableObject
     {
-        private readonly ProjectService _projectService;
+        private readonly ProjectService _projectService = new ProjectService();
         private readonly ProjectsWindow _window;
 
-        private List<Project> _allProjects = new();
+        private List<Project> _allProjects = new List<Project>();
 
-        private ObservableCollection<Project> _projects = new();
+        // === Projects ===
+        private ObservableCollection<Project> _projects = new ObservableCollection<Project>();
         public ObservableCollection<Project> Projects
         {
-            get => _projects;
+            get { return _projects; }
             set
             {
                 _projects = value;
@@ -30,21 +31,25 @@ namespace ParamonovDesktop.ViewModel
             }
         }
 
+        // === SelectedProject ===
         private Project _selectedProject;
         public Project SelectedProject
         {
-            get => _selectedProject;
+            get { return _selectedProject; }
             set
             {
                 _selectedProject = value;
                 OnPropertyChanged(nameof(SelectedProject));
+                OnPropertyChanged(nameof(CanOpenProject));
+                OpenProjectCommand.NotifyCanExecuteChanged();
             }
         }
 
+        // === IsLoading ===
         private bool _isLoading;
         public bool IsLoading
         {
-            get => _isLoading;
+            get { return _isLoading; }
             set
             {
                 _isLoading = value;
@@ -52,10 +57,11 @@ namespace ParamonovDesktop.ViewModel
             }
         }
 
+        // === SelectedStatusFilter ===
         private string _selectedStatusFilter = "all";
         public string SelectedStatusFilter
         {
-            get => _selectedStatusFilter;
+            get { return _selectedStatusFilter; }
             set
             {
                 _selectedStatusFilter = value;
@@ -64,41 +70,32 @@ namespace ParamonovDesktop.ViewModel
             }
         }
 
-        public bool IsCustomer =>
-            App.CurrentUser != null &&
-            !string.IsNullOrEmpty(App.CurrentUser.Role) &&
-            App.CurrentUser.Role.Equals("customer", StringComparison.OrdinalIgnoreCase);
+        // === IsCustomer ===
+        public bool IsCustomer
+        {
+            get
+            {
+                return App.CurrentUser != null &&
+                       !string.IsNullOrEmpty(App.CurrentUser.Role) &&
+                       App.CurrentUser.Role.Equals("customer", StringComparison.OrdinalIgnoreCase);
+            }
+        }
 
-        public bool CanOpenProject => SelectedProject != null;
+        public bool CanOpenProject
+        {
+            get { return SelectedProject != null; }
+        }
 
         public ProjectsViewModel(ProjectsWindow window)
         {
             _window = window;
             _projectService = new ProjectService();
-
-            LoadData();
+            var _ = LoadProjectsAsync();
         }
 
-        private async void LoadData()
-        {
-            try
-            {
-                await LoadProjects();
-            }
-            catch (Exception ex)
-            {
-                CustomMessageBox.Show($"Ошибка загрузки данных: {ex.Message}");
-            }
-        }
-
+        // === Загрузка ===
         [RelayCommand]
-        private void SetStatusFilter(string status)
-        {
-            SelectedStatusFilter = status ?? "all";
-        }
-
-        [RelayCommand]
-        private async Task LoadProjects()
+        private async Task LoadProjectsAsync()
         {
             IsLoading = true;
             var list = await _projectService.GetMyProjects() ?? new List<Project>();
@@ -118,7 +115,15 @@ namespace ParamonovDesktop.ViewModel
             Projects = new ObservableCollection<Project>(filtered);
         }
 
+        // === Фильтр ===
         [RelayCommand]
+        private void SetStatusFilter(string status)
+        {
+            SelectedStatusFilter = status ?? "all";
+        }
+
+        // === Открыть проект ===
+        [RelayCommand(CanExecute = nameof(CanOpenProject))]
         private void OpenProject()
         {
             if (SelectedProject == null)
@@ -127,68 +132,41 @@ namespace ParamonovDesktop.ViewModel
                 return;
             }
 
-            try
-            {
-                var detail = new ProjectDetailWindow(SelectedProject.IdProject);
-                detail.Show();
-                _window.Close();
-            }
-            catch (Exception ex)
-            {
-                CustomMessageBox.Show("Ошибка открытия проекта:\n" + ex.Message);
-            }
+            var detail = new ProjectDetailWindow(SelectedProject.IdProject);
+            detail.Show();
+            //_window.Close();
         }
 
-        [RelayCommand]
+        // === Создать проект ===
+        [RelayCommand(CanExecute = nameof(IsCustomer))]
         private async Task CreateProject()
         {
-            if (!IsCustomer)
-            {
-                CustomMessageBox.Show("Создавать проекты может только заказчик");
-                return;
-            }
-
             if (App.CurrentUser == null)
             {
-                CustomMessageBox.Show("Пользователь не авторизован");
+                MessageBox.Show("Пользователь не авторизован");
                 return;
             }
-
-            var newProject = new Project
-            {
-                Name = "Новый проект",
-                Description = "Описание проекта",
-                Status = "draft",
-                IdCustomer = App.CurrentUser.IdUser
-            };
 
             Project created = null;
             try
             {
-                created = await _projectService.CreateProject(newProject);
+                created = await _projectService.CreateProjectDraft("Новый проект", "Описание проекта");
             }
             catch (Exception ex)
             {
-                CustomMessageBox.Show("Ошибка запроса:\n" + ex.Message);
+                MessageBox.Show("Ошибка запроса:\n" + ex.Message);
                 return;
             }
 
             if (created == null)
             {
-                CustomMessageBox.Show("Не удалось создать проект (ответ API пустой или ошибка)");
+                MessageBox.Show("Не удалось создать проект");
                 return;
             }
 
-            try
-            {
-                var detail = new ProjectDetailWindow(created.IdProject);
-                detail.Show();
-                _window.Close();
-            }
-            catch (Exception ex)
-            {
-                CustomMessageBox.Show("Проект создан, но открыть карточку не удалось:\n" + ex.Message);
-            }
+            var detail = new ProjectDetailWindow(created.IdProject);
+            detail.Show();
+            _window.Close();
         }
     }
 }

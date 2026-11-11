@@ -9,7 +9,7 @@ namespace ParamonovDesktop.Model
     public class ChangeRequest
     {
         public int IdChange { get; set; }
-        public int? IdSpecItem { get; set; }
+        public int IdSpecItem { get; set; }
         public int? IdTask { get; set; }
         public int? IdInvoice { get; set; }
         public string Name { get; set; }

@@ -17,9 +17,12 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal" Grid.Row="0">
-            <TextBlock Grid.Row="0" Text="Доступные проекты"  FontSize="35" Margin="10"  FontWeight="ExtraBold"/>
-        </StackPanel>
+
+        <!-- Заголовок -->
+        <TextBlock Grid.Row="0" Text="Доступные проекты"
+                   FontSize="35" Margin="10" FontWeight="ExtraBold"/>
+
+        <!-- Фильтры по статусу -->
         <WrapPanel Grid.Row="1" Margin="10 0 10 10">
             <Button Content="Все" Command="{Binding SetStatusFilterCommand}"
                     CommandParameter="all" Width="100" Margin="0 0 5 0" Background="BlanchedAlmond"/>
@@ -27,8 +30,10 @@
                     CommandParameter="draft" Width="100" Margin="0 0 5 0" Background="BlanchedAlmond"/>
             <Button Content="В работе" Command="{Binding SetStatusFilterCommand}"
                     CommandParameter="in_progress" Width="100" Margin="0 0 5 0" Background="BlanchedAlmond"/>
-            <Button Content="На одобрении" Command="{Binding SetStatusFilterCommand}"
-                    CommandParameter="pending_approval" Width="120" Margin="0 0 5 0" Background="BlanchedAlmond"/>
+            <Button Content="Счёт на проверке" Command="{Binding SetStatusFilterCommand}"
+                    CommandParameter="pending_invoice_approval" Width="160" Margin="0 0 5 0" Background="BlanchedAlmond"/>
+            <Button Content="ТЗ на проверке" Command="{Binding SetStatusFilterCommand}"
+                    CommandParameter="pending_spec_approval" Width="140" Margin="0 0 5 0" Background="BlanchedAlmond"/>
             <Button Content="Закончен" Command="{Binding SetStatusFilterCommand}"
                     CommandParameter="completed" Width="100" Margin="0 0 5 0" Background="BlanchedAlmond"/>
             <Button Content="Закрыт" Command="{Binding SetStatusFilterCommand}"
@@ -36,32 +41,46 @@
             <Button Content="Заморожен" Command="{Binding SetStatusFilterCommand}"
                     CommandParameter="frozen" Width="100" Background="BlanchedAlmond"/>
         </WrapPanel>
+
+        <!-- Список проектов -->
         <ListBox Grid.Row="2" ItemsSource="{Binding Projects}"
                  SelectedItem="{Binding SelectedProject}" Background="Transparent">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Orientation="Vertical" Margin="5"  Background="BlanchedAlmond" Width="730" HorizontalAlignment="Left">
+                    <StackPanel Margin="5" Background="BlanchedAlmond" Width="880"
+                                HorizontalAlignment="Left">
                         <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Margin="10"/>
                         <TextBlock Text="{Binding Description}" Margin="10"/>
-                        <TextBlock Text="{Binding StatusText, StringFormat='Статус: {0}'}" Margin="10" Background="RoyalBlue" Padding="5" Foreground="BlanchedAlmond" Width="200" HorizontalAlignment="Left"/>
+                        <StackPanel Orientation="Horizontal" Margin="10 0 0 10">
+                            <TextBlock Text="{Binding StatusText, StringFormat='Статус: {0}'}"
+                                       Background="RoyalBlue" Padding="5"
+                                       Foreground="BlanchedAlmond" Width="250"/>
+                            <TextBlock Text="{Binding TotalCost, StringFormat='Стоимость: {0:N2} ₽'}"
+                                       Background="DarkRed" Padding="5" Margin="10 0 0 0"
+                                       Foreground="BlanchedAlmond" Width="220"/>
+                        </StackPanel>
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <DockPanel Grid.Row="3" LastChildFill="False"
-                     Margin="0 10 0 0">
+        <!-- Кнопки -->
+        <DockPanel Grid.Row="3" LastChildFill="False" Margin="0 10 0 0">
             <Button Content="СОЗДАТЬ"
-                Width="120" Margin="0 0 10 0"
                     Command="{Binding CreateProjectCommand}"
                     Visibility="{Binding IsCustomer, Converter={StaticResource BoolToVisibility}}"
-                    FontSize="20" Background="RoyalBlue" FontWeight="Bold" Foreground="BlanchedAlmond" DockPanel.Dock="Left"/>
-            <StackPanel Orientation="Horizontal"
-                    DockPanel.Dock="Right">
+                    Width="140" Margin="0 0 10 0" FontSize="20"
+                    Background="RoyalBlue" FontWeight="Bold"
+                    Foreground="BlanchedAlmond" DockPanel.Dock="Left"/>
+
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                 <Button Content="ОБНОВИТЬ" Command="{Binding LoadProjectsCommand}"
-                    Width="120" Margin="0 0 10 0" Background="BlanchedAlmond" FontSize="20" FontWeight="Bold"/>
+                        Width="120" Margin="0 0 10 0" Background="BlanchedAlmond"
+                        FontSize="20" FontWeight="Bold"/>
                 <Button Content="ОТКРЫТЬ" Command="{Binding OpenProjectCommand}"
-                    Width="120" FontSize="20" Background="RoyalBlue" FontWeight="Bold" Foreground="BlanchedAlmond"/>
+                        IsEnabled="{Binding CanOpenProject}"
+                        Width="120" FontSize="20" Background="RoyalBlue"
+                        FontWeight="Bold" Foreground="BlanchedAlmond"/>
             </StackPanel>
         </DockPanel>
     </Grid>
