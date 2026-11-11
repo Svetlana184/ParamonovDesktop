@@ -12,5 +12,7 @@ namespace ParamonovDesktop.Model
         public int IdSpec { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+
+        public bool IsNew { get; set; }
     }
 }

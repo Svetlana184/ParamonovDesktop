@@ -13,18 +13,28 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="250"/>
+            <RowDefinition Height="220"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Шапка -->
-        <TextBlock Grid.Row="0" FontSize="22" FontWeight="Bold" Margin="0 0 0 10">
+        <TextBlock Grid.Row="0" FontSize="22" FontWeight="Bold" Margin="0 0 0 5">
             <Run Text="Проект: "/>
             <Run Text="{Binding Project.Name}"/>
+            <Run Text=" — "/>
+            <Run Text="{Binding Project.StatusText}"/>
         </TextBlock>
 
+        <!-- Информация о заказчике и команде -->
+        <StackPanel Grid.Row="1" Orientation="Vertical" Margin="0 0 0 10">
+            <TextBlock Text="{Binding CustomerInfo}" FontSize="14"/>
+            <TextBlock Text="{Binding TeamInfo}" FontSize="14"/>
+        </StackPanel>
+
         <!-- Основная область -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="1*"/>
@@ -43,7 +53,8 @@
                                TextWrapping="Wrap" Margin="5"/>
 
                     <ListBox Grid.Row="1" ItemsSource="{Binding SpecItems}"
-                             SelectedItem="{Binding SelectedSpecItem}" Margin="5" Background="BlanchedAlmond">
+                             SelectedItem="{Binding SelectedSpecItem}" Margin="5"
+                             Background="BlanchedAlmond">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Margin="3">
@@ -54,124 +65,141 @@
                         </ListBox.ItemTemplate>
                     </ListBox>
 
-                    <!-- Кнопка видна ТОЛЬКО заказчику -->
-                    <Button Grid.Row="2"
-                            Content="Сохранить и отправить менеджеру"
-                            Command="{Binding SaveSpecAndSendCommand}"
-                            IsEnabled="{Binding CanSaveSpecAndSendEnabled}"
-                            Visibility="{Binding CanEditSpecVisible, Converter={StaticResource BoolToVisibility}}"
-                            Margin="5" Background="RoyalBlue" FontWeight="Bold" Foreground="BlanchedAlmond"/>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal"
+                                Visibility="{Binding CanEditSpec, Converter={StaticResource BoolToVisibility}}"
+                                Margin="5">
+                        <Button Content="Добавить" Command="{Binding AddSpecItemCommand}"
+                                Width="100" Margin="0 0 5 0"/>
+                        <Button Content="Удалить" Command="{Binding DeleteSpecItemCommand}"
+                                Width="100" Margin="0 0 5 0"/>
+                        <Button Content="Сохранить" Command="{Binding SaveSpecItemCommand}"
+                                Width="100"/>
+                    </StackPanel>
                 </Grid>
             </GroupBox>
 
-            <!-- Правая часть: Счет и задачи -->
-            <GroupBox Grid.Column="1" Header="Счет и задачи" Margin="5 0 0 0" FontSize="16">
+            <!-- Правая часть: счёт и задачи -->
+            <GroupBox Grid.Column="1" Header="Счёт и задачи" Margin="5 0 0 0" FontSize="16">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <DataGrid Grid.Row="0" ItemsSource="{Binding Tasks}"
                               SelectedItem="{Binding SelectedTask}"
-                              AutoGenerateColumns="False" CanUserAddRows="False" Margin="5" Background="BlanchedAlmond">
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="Background" Value="BlanchedAlmond"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
-                        <DataGrid.RowStyle>
-                            <Style TargetType="DataGridRow">
-                                <Setter Property="Background" Value="BlanchedAlmond"/>
-                                <Style.Triggers>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter Property="Background" Value="RoyalBlue"/>
-                                        <Setter Property="Foreground" Value="BlanchedAlmond"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </DataGrid.RowStyle>
+                              AutoGenerateColumns="False" CanUserAddRows="False"
+                              Margin="5" Background="BlanchedAlmond">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Описание"
-                                                Binding="{Binding Description}" Width="*"/>
+                            <DataGridTextColumn Header="Описание" Binding="{Binding Description}" Width="*"/>
+                            <DataGridTextColumn Header="План, ч" Binding="{Binding PlannedHours}" Width="70"/>
 
-                            <DataGridTextColumn Header="План, ч"
-                                                Binding="{Binding PlannedHours}" Width="70"/>
+                            <!-- Факт. часы: developer и manager в in_progress, developer в pending_approval -->
+                            <DataGridTextColumn Header="Факт, ч" Binding="{Binding ActualHours}" Width="70"
+                                IsReadOnly="{Binding DataContext.CanEditTasks, RelativeSource={RelativeSource AncestorType=DataGrid}, Converter={StaticResource InverseBool}}"/>
 
-                            <!-- Факт. часы редактирует только разработчик -->
-                            <DataGridTextColumn Header="Факт, ч"
-                                                Binding="{Binding ActualHours}" Width="70"
-                                                IsReadOnly="{Binding DataContext.CanEditHoursVisible,
-                                                    RelativeSource={RelativeSource AncestorType=DataGrid},
-                                                    Converter={StaticResource InverseBool}}"/>
-
-                            <!-- Стоимость редактирует только менеджер -->
-                            <DataGridTextColumn Header="Стоимость"
-                                                Binding="{Binding Cost}" Width="100"
-                                                IsReadOnly="{Binding DataContext.CanEditTasksVisible,
-                                                    RelativeSource={RelativeSource AncestorType=DataGrid},
-                                                    Converter={StaticResource InverseBool}}"/>
+                            <!-- Стоимость: только manager в in_progress -->
+                            <DataGridTextColumn Header="Стоимость" Binding="{Binding Cost}" Width="100"
+                                IsReadOnly="{Binding DataContext.CanEditInvoice, RelativeSource={RelativeSource AncestorType=DataGrid}, Converter={StaticResource InverseBool}}"/>
                         </DataGrid.Columns>
                     </DataGrid>
 
-                    <StackPanel Grid.Row="1" Orientation="Horizontal"
-                                HorizontalAlignment="Right" Margin="5">
-
-                        <!-- Кнопка видна ТОЛЬКО разработчику -->
-                        <Button Content="Сохранить часы"
-                                Command="{Binding SaveHoursCommand}"
-                                IsEnabled="{Binding CanSaveHoursEnabled}"
-                                Visibility="{Binding CanEditHoursVisible, Converter={StaticResource BoolToVisibility}}"
-                                Width="130" Margin="0 0 5 0" Background="BlanchedAlmond" FontWeight="Bold"/>
-
-                        <!-- Кнопка видна ТОЛЬКО менеджеру -->
-                        <Button Content="Сохранить и отправить"
-                                Command="{Binding SaveTaskAndSendCommand}"
-                                IsEnabled="{Binding CanSaveTaskAndSendEnabled}"
-                                Visibility="{Binding CanEditTasksVisible, Converter={StaticResource BoolToVisibility}}"
-                                Width="200" Background="RoyalBlue" FontWeight="Bold" Foreground="BlanchedAlmond"/>
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="5"
+                                Visibility="{Binding CanEditTasks, Converter={StaticResource BoolToVisibility}}">
+                        <Button Content="Добавить задачу" Command="{Binding AddTaskCommand}"
+                                Width="130" Margin="0 0 5 0"/>
+                        <Button Content="Удалить задачу" Command="{Binding DeleteTaskCommand}"
+                                Width="130" Margin="0 0 5 0"/>
+                        <Button Content="Сохранить задачу" Command="{Binding SaveTaskCommand}"
+                                Width="140"/>
                     </StackPanel>
+
+                    <Button Grid.Row="2" Content="Отправить счёт на проверку"
+                            Command="{Binding SendInvoiceForReviewCommand}"
+                            Visibility="{Binding CanSendInvoiceForReview, Converter={StaticResource BoolToVisibility}}"
+                            Margin="5" Background="RoyalBlue" FontWeight="Bold"
+                            Foreground="BlanchedAlmond" Height="30"/>
                 </Grid>
             </GroupBox>
         </Grid>
 
-        <!-- Запросы на изменения -->
-        <GroupBox Grid.Row="2" Header="Запросы на изменения" Margin="0 10 0 0" FontSize="16">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <ListBox Grid.Row="0" ItemsSource="{Binding ChangeRequests}"
-                         SelectedItem="{Binding SelectedChange}" Background="BlanchedAlmond">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" Margin="3">
-                                <TextBlock Text="{Binding Name}" FontWeight="Bold"
-                                           Margin="0 0 10 0"/>
-                                <TextBlock Text="{Binding Description}" Foreground="Gray"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-
-                <StackPanel Grid.Row="1" Orientation="Horizontal"
-                            HorizontalAlignment="Right" Margin="5">
-
-                    <!-- Кнопки видны менеджеру и заказчику -->
-                    <Button Content="ОТКЛОНИТЬ"
-                        Command="{Binding RejectChangeCommand}"
-                        IsEnabled="{Binding CanApproveChangeEnabled}"
-                        Visibility="{Binding CanApproveChangesVisible, Converter={StaticResource BoolToVisibility}}"
-                        Width="120" Margin="0 0 10 0" Background="BlanchedAlmond" FontSize="20" FontWeight="Bold"/>
-                    <Button Content="ПРИНЯТЬ"
-                            Command="{Binding ApproveChangeCommand}"
-                            IsEnabled="{Binding CanApproveChangeEnabled}"
-                            Visibility="{Binding CanApproveChangesVisible, Converter={StaticResource BoolToVisibility}}"
-                            Width="100" FontSize="20" Background="RoyalBlue" FontWeight="Bold" Foreground="BlanchedAlmond"/>
-                </StackPanel>
-            </Grid>
+        <!-- Назначение команды (только draft, заказчик) -->
+        <GroupBox Grid.Row="3" Header="Назначение команды" FontSize="16" Margin="0 10 0 0"
+                  Visibility="{Binding IsDraft, Converter={StaticResource BoolToVisibility}}">
+            <StackPanel Margin="5">
+                <ComboBox ItemsSource="{Binding Teams}" SelectedItem="{Binding SelectedTeam}"
+                          DisplayMemberPath="Name" Width="300" HorizontalAlignment="Left"/>
+                <Button Content="Назначить команду и перевести в «В работе»"
+                        Command="{Binding AssignTeamCommand}"
+                        IsEnabled="{Binding CanAssignTeam}"
+                        Width="350" HorizontalAlignment="Left" Margin="0 10 0 0"
+                        Background="RoyalBlue" FontWeight="Bold" Foreground="BlanchedAlmond" Height="30"/>
+            </StackPanel>
         </GroupBox>
+
+        <!-- Нижняя панель: запросы на изменения и закрытие -->
+        <Grid Grid.Row="4" Margin="0 10 0 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <GroupBox Grid.Column="0" Header="Запросы на изменения" FontSize="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <ListBox Grid.Row="0" ItemsSource="{Binding ChangeRequests}"
+                             SelectedItem="{Binding SelectedChange}" Background="BlanchedAlmond">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Margin="3">
+                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="0 0 10 0"/>
+                                    <TextBlock Text="{Binding Description}" Foreground="Gray"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <StackPanel Grid.Row="1" Orientation="Horizontal"
+                                HorizontalAlignment="Right" Margin="5"
+                                Visibility="{Binding CanApproveChanges, Converter={StaticResource BoolToVisibility}}">
+                        <Button Content="ОТКЛОНИТЬ" Command="{Binding RejectChangeCommand}"
+                                Width="120" Margin="0 0 10 0" Background="BlanchedAlmond"
+                                FontSize="18" FontWeight="Bold"/>
+                        <Button Content="ПРИНЯТЬ" Command="{Binding ApproveChangeCommand}"
+                                Width="100" Background="RoyalBlue" FontSize="18"
+                                FontWeight="Bold" Foreground="BlanchedAlmond"/>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+
+            <StackPanel Grid.Column="1" Orientation="Vertical" Margin="10 0 0 0" Width="200">
+                <Button Content="СОХРАНИТЬ ИЗМЕНЕНИЯ"
+                        Command="{Binding FinishApprovalCommand}"
+                        Visibility="{Binding CanFinishApproval, Converter={StaticResource BoolToVisibility}}"
+                        Height="30" Margin="0 0 0 5" Background="RoyalBlue"
+                        FontWeight="Bold" Foreground="BlanchedAlmond"/>
+
+                <Button Content="ЗАМОРОЗИТЬ"
+                        Command="{Binding FreezeProjectCommand}"
+                        Visibility="{Binding IsEditable, Converter={StaticResource BoolToVisibility}}"
+                        Height="30" Margin="0 0 0 5" Background="BlanchedAlmond"
+                        FontWeight="Bold"/>
+
+                <Button Content="РАЗМОРОЗИТЬ"
+                        Command="{Binding UnfreezeProjectCommand}"
+                        Visibility="{Binding CanUnfreezeProject, Converter={StaticResource BoolToVisibility}}"
+                        Height="30" Margin="0 0 0 5" Background="RoyalBlue"
+                        FontWeight="Bold" Foreground="BlanchedAlmond"/>
+
+                <Button Content="ЗАКРЫТЬ ПРОЕКТ"
+                        Command="{Binding CloseProjectCommand}"
+                        Visibility="{Binding CanCloseProject, Converter={StaticResource BoolToVisibility}}"
+                        Height="30" Background="DarkRed"
+                        FontWeight="Bold" Foreground="BlanchedAlmond"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

@@ -13,15 +13,30 @@
     <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" Grid.Row="0">
             <TextBlock Grid.Row="0" Text="Доступные проекты"  FontSize="35" Margin="10"  FontWeight="ExtraBold"/>
         </StackPanel>
-       
-
-        <ListBox Grid.Row="1" ItemsSource="{Binding Projects}"
+        <WrapPanel Grid.Row="1" Margin="10 0 10 10">
+            <Button Content="Все" Command="{Binding SetStatusFilterCommand}"
+                    CommandParameter="all" Width="100" Margin="0 0 5 0" Background="BlanchedAlmond"/>
+            <Button Content="Черновик" Command="{Binding SetStatusFilterCommand}"
+                    CommandParameter="draft" Width="100" Margin="0 0 5 0" Background="BlanchedAlmond"/>
+            <Button Content="В работе" Command="{Binding SetStatusFilterCommand}"
+                    CommandParameter="in_progress" Width="100" Margin="0 0 5 0" Background="BlanchedAlmond"/>
+            <Button Content="На одобрении" Command="{Binding SetStatusFilterCommand}"
+                    CommandParameter="pending_approval" Width="120" Margin="0 0 5 0" Background="BlanchedAlmond"/>
+            <Button Content="Закончен" Command="{Binding SetStatusFilterCommand}"
+                    CommandParameter="completed" Width="100" Margin="0 0 5 0" Background="BlanchedAlmond"/>
+            <Button Content="Закрыт" Command="{Binding SetStatusFilterCommand}"
+                    CommandParameter="closed" Width="100" Margin="0 0 5 0" Background="BlanchedAlmond"/>
+            <Button Content="Заморожен" Command="{Binding SetStatusFilterCommand}"
+                    CommandParameter="frozen" Width="100" Background="BlanchedAlmond"/>
+        </WrapPanel>
+        <ListBox Grid.Row="2" ItemsSource="{Binding Projects}"
                  SelectedItem="{Binding SelectedProject}" Background="Transparent">
             <ListBox.ItemTemplate>
                 <DataTemplate>
@@ -34,12 +49,20 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal"
-                    HorizontalAlignment="Right" Margin="0 10 0 0">
-            <Button Content="ОБНОВИТЬ" Command="{Binding LoadProjectsCommand}"
+        <DockPanel Grid.Row="3" LastChildFill="False"
+                     Margin="0 10 0 0">
+            <Button Content="СОЗДАТЬ"
+                Width="120" Margin="0 0 10 0"
+                    Command="{Binding CreateProjectCommand}"
+                    Visibility="{Binding IsCustomer, Converter={StaticResource BoolToVisibility}}"
+                    FontSize="20" Background="RoyalBlue" FontWeight="Bold" Foreground="BlanchedAlmond" DockPanel.Dock="Left"/>
+            <StackPanel Orientation="Horizontal"
+                    DockPanel.Dock="Right">
+                <Button Content="ОБНОВИТЬ" Command="{Binding LoadProjectsCommand}"
                     Width="120" Margin="0 0 10 0" Background="BlanchedAlmond" FontSize="20" FontWeight="Bold"/>
-            <Button Content="ОТКРЫТЬ" Command="{Binding OpenProjectCommand}"
+                <Button Content="ОТКРЫТЬ" Command="{Binding OpenProjectCommand}" IsEnabled="{Binding CanOpenProject}"
                     Width="120" FontSize="20" Background="RoyalBlue" FontWeight="Bold" Foreground="BlanchedAlmond"/>
-        </StackPanel>
+            </StackPanel>
+        </DockPanel>
     </Grid>
 </Window>

@@ -36,16 +36,40 @@ namespace ParamonovDesktop.Services
             }
         }
 
-        public async Task UpdateItem(SpecItem item)
+        public async Task<bool> UpdateItem(SpecItem item)
         {
-            using (var request = CreateRequest(HttpMethod.Put,
-                BaseUrl + "/api/specificationitem/" + item.IdItem))
+            using (var request = CreateRequest(HttpMethod.Put, BaseUrl + "/api/specificationitem/" + item.IdItem))
             {
                 request.Content = ToJson(item);
                 using (var response = await Client.SendAsync(request))
                 {
-                    response.EnsureSuccessStatusCode();
+                    return response.StatusCode == HttpStatusCode.NoContent ||
+                           response.StatusCode == HttpStatusCode.OK;
                 }
+            }
+        }
+
+        public async Task<SpecItem> CreateItem(SpecItem item)
+        {
+            using (var request = CreateRequest(HttpMethod.Post, BaseUrl + "/api/specificationitem"))
+            {
+                request.Content = ToJson(item);
+                using (var response = await Client.SendAsync(request))
+                {
+                    if (response.StatusCode != HttpStatusCode.Created &&
+                        response.StatusCode != HttpStatusCode.OK) return null;
+                    string text = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<SpecItem>(text, JsonOptions);
+                }
+            }
+        }
+        public async Task<bool> DeleteItem(int id)
+        {
+            using (var request = CreateRequest(HttpMethod.Delete, BaseUrl + "/api/specificationitem/" + id))
+            using (var response = await Client.SendAsync(request))
+            {
+                return response.StatusCode == HttpStatusCode.NoContent ||
+                       response.StatusCode == HttpStatusCode.OK;
             }
         }
     }

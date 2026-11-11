@@ -31,5 +31,9 @@ namespace ParamonovDesktop.Model
                 }
             }
         }
+        public bool CanEditStatus
+        {
+            get { return Status != "completed" && Status != "closed"; }
+        }
     }
 }
