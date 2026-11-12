@@ -150,7 +150,7 @@ namespace ParamonovDesktop.ViewModel
             Project created = null;
             try
             {
-                created = await _projectService.CreateProjectDraft("Новый проект", "Описание проекта");
+                created = await _projectService.CreateProjectDraft(App.CurrentUser.IdUser, "Новый проект", "Описание проекта");
             }
             catch (Exception ex)
             {

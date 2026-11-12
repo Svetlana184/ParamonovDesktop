@@ -62,6 +62,19 @@ namespace ParamonovDesktop.ViewModel
             }
         }
 
+        private TechnicalSpecification _specification;
+        public TechnicalSpecification Specification
+        {
+            get { return _specification; }
+            set
+            {
+                _specification = value;
+                OnPropertyChanged(nameof(Specification));
+                UpdateTotalCost();
+            }
+        }
+
+
         private ObservableCollection<SpecItem> _specItems = new ObservableCollection<SpecItem>();
         public ObservableCollection<SpecItem> SpecItems
         {
@@ -115,7 +128,7 @@ namespace ParamonovDesktop.ViewModel
                 _selectedTeam = value;
                 OnPropertyChanged(nameof(SelectedTeam));
                 OnPropertyChanged(nameof(CanAssignTeam));
-                //SaveProjectAndSubmitCommand.NotifyCanExecuteChanged();
+                SaveProjectAndSubmitCommand.NotifyCanExecuteChanged();
             }
         }
 
@@ -127,7 +140,7 @@ namespace ParamonovDesktop.ViewModel
             {
                 _selectedSpecItem = value;
                 OnPropertyChanged(nameof(SelectedSpecItem));
-                //DeleteSpecItemCommand.NotifyCanExecuteChanged();
+                DeleteSpecItemCommand.NotifyCanExecuteChanged();
             }
         }
 
@@ -139,8 +152,8 @@ namespace ParamonovDesktop.ViewModel
             {
                 _selectedTask = value;
                 OnPropertyChanged(nameof(SelectedTask));
-                //SaveHoursCommand.NotifyCanExecuteChanged();
-                //DeleteTaskCommand.NotifyCanExecuteChanged();
+                SaveHoursCommand.NotifyCanExecuteChanged();
+                DeleteTaskCommand.NotifyCanExecuteChanged();
             }
         }
 
@@ -152,8 +165,8 @@ namespace ParamonovDesktop.ViewModel
             {
                 _selectedChange = value;
                 OnPropertyChanged(nameof(SelectedChange));
-                //ApproveChangeCommand.NotifyCanExecuteChanged();
-                //RejectChangeCommand.NotifyCanExecuteChanged();
+                ApproveChangeCommand.NotifyCanExecuteChanged();
+                RejectChangeCommand.NotifyCanExecuteChanged();
             }
         }
 
@@ -267,6 +280,8 @@ namespace ParamonovDesktop.ViewModel
             Project = await _projectService.GetProject(_projectId);
             if (Project == null) return;
 
+
+
             Invoice = Project.IdInvoice != null
                 ? await _invoiceService.GetInvoice(Project.IdInvoice.Value)
                 : null;
@@ -300,8 +315,19 @@ namespace ParamonovDesktop.ViewModel
             }
             else TeamInfo = "Команда: не назначена";
 
-            var items = await _specService.GetItems(_projectId);
-            SpecItems = new ObservableCollection<SpecItem>(items ?? new List<SpecItem>());
+            // 1. Шапка ТЗ по проекту
+            Specification = await _specService.GetSpecByProject(_projectId);
+
+            // 2. Пункты ТЗ по IdSpec
+            if (Specification != null)
+            {
+                var items = await _specService.GetItemsBySpec(Specification.IdSpec);
+                SpecItems = new ObservableCollection<SpecItem>(items);
+            }
+            else
+            {
+                SpecItems = new ObservableCollection<SpecItem>();
+            }
 
             var allTasks = await _taskService.GetAll() ?? new List<TaskItem>();
             if (IsDeveloper)
@@ -328,24 +354,59 @@ namespace ParamonovDesktop.ViewModel
                 "Подтверждение",
                 MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
 
-            await _projectService.Update(Project);
-
-            foreach (var item in SpecItems.Where(i => i.IsNew))
-                await _specService.CreateItem(item);
-
-            if (SelectedTeam != null)
-            {
-                Project.IdTeam = SelectedTeam.IdTeam;
-                await _projectService.Update(Project);
-            }
-
             try
             {
+                // 1. Назначаем команду ДО сохранения проекта — один PUT вместо двух
+                if (SelectedTeam != null)
+                    Project.IdTeam = SelectedTeam.IdTeam;
+
+                // 2. Сохраняем шапку проекта
+                if (!await _projectService.Update(Project))
+                {
+                    CustomMessageBox.Show("Не удалось сохранить проект");
+                    return;
+                }
+
+                // 3. Сохраняем шапку ТЗ (если она есть)
+                if (Specification != null)
+                {
+                    if (Specification.IdProject == 0)
+                        Specification.IdProject = _projectId;
+
+                    await _specService.UpdateSpec(Specification);
+                }
+
+                // 4. Синхронизируем пункты ТЗ: новые — create, изменённые — update
+                foreach (var item in SpecItems)
+                {
+                    if (item.IsNew)
+                    {
+                        item.IdSpec = Specification?.IdSpec ?? item.IdSpec;
+
+                        var created = await _specService.CreateItem(item);
+                        if (created != null)
+                        {
+                            // подтягиваем присвоенный сервером Id и снимаем флаг
+                            item.IdItem = created.IdItem;
+                            item.IsNew = false;
+                        }
+                    }
+                    else
+                    {
+                        await _specService.UpdateItem(item);
+                    }
+                }
+
+                // 5. Меняем статус проекта (draft → in_progress и т.п.)
                 await _projectService.SubmitProject(_projectId);
-                MessageBox.Show("Проект отправлен команде");
+
+                CustomMessageBox.Show("Проект отправлен команде");
                 await LoadAllAsync();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex)
+            {
+                CustomMessageBox.Show("Ошибка при сохранении/отправке:\n" + ex.Message);
+            }
         }
 
         // ===== Менеджер: сохранить счёт и задачи =====
@@ -443,7 +504,7 @@ namespace ParamonovDesktop.ViewModel
         {
             var item = new SpecItem
             {
-                IdSpec = _projectId,
+                IdSpec = Specification.IdSpec,
                 Name = "Новый пункт",
                 Description = "Описание",
                 IsNew = true

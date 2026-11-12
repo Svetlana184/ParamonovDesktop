@@ -12,6 +12,32 @@ namespace ParamonovDesktop.Services
 {
     public class SpecService : BaseHttpService
     {
+        /// <summary>ТЗ проекта. null, если ТЗ ещё не создано (404).</summary>
+        public async Task<TechnicalSpecification> GetSpecByProject(int projectId)
+        {
+            using (var request = CreateRequest(HttpMethod.Get,
+                BaseUrl + "/api/TechnicalSpecification/project/" + projectId))
+            using (var response = await Client.SendAsync(request))
+            {
+                if (response.StatusCode != HttpStatusCode.OK) return null;
+                string text = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<TechnicalSpecification>(text, JsonOptions);
+            }
+        }
+
+        /// <summary>Пункты конкретного ТЗ.</summary>
+        public async Task<List<SpecItem>> GetItemsBySpec(int specId)
+        {
+            using (var request = CreateRequest(HttpMethod.Get,
+                BaseUrl + "/api/SpecificationItem/by-spec/" + specId))
+            using (var response = await Client.SendAsync(request))
+            {
+                if (response.StatusCode != HttpStatusCode.OK) return null;
+                string text = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<List<SpecItem>>(text, JsonOptions);
+            }
+        }
+
         public async Task<List<SpecItem>> GetItems(int idSpec)
         {
             using (var request = CreateRequest(HttpMethod.Get,
@@ -48,7 +74,19 @@ namespace ParamonovDesktop.Services
                 }
             }
         }
-
+        public async Task<bool> UpdateSpec(TechnicalSpecification item)
+        {
+            using (var request = CreateRequest(HttpMethod.Put,
+                BaseUrl + "/api/TechnicalSpecification/" + item.IdSpec))
+            {
+                request.Content = ToJson(item);
+                using (var response = await Client.SendAsync(request))
+                {
+                    return response.StatusCode == HttpStatusCode.NoContent ||
+                           response.StatusCode == HttpStatusCode.OK;
+                }
+            }
+        }
         public async Task<SpecItem> CreateItem(SpecItem item)
         {
             using (var request = CreateRequest(HttpMethod.Post, BaseUrl + "/api/specificationitem"))

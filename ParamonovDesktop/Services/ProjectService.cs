@@ -47,7 +47,7 @@ namespace ParamonovDesktop.Services
 
         public async Task<Project> CreateProject(Project item)
         {
-            using (var request = CreateRequest(HttpMethod.Post, BaseUrl + $"/api/project/{App.CurrentUser.IdUser}"))
+            using (var request = CreateRequest(HttpMethod.Post, BaseUrl + $"/api/project"))
             {
                 request.Content = ToJson(item);
                 using (var response = await Client.SendAsync(request))
@@ -60,9 +60,9 @@ namespace ParamonovDesktop.Services
             }
         }
 
-        public async Task<Project> CreateProjectDraft(string name, string description)
+        public async Task<Project?> CreateProjectDraft(int customerId, string? name, string? description)
         {
-            var dto = new { name = name, description = description };
+            var dto = new { idCustomer = customerId, name = name, description = description };
             using (var request = CreateRequest(HttpMethod.Post, BaseUrl + "/api/project/draft"))
             {
                 request.Content = ToJson(dto);
