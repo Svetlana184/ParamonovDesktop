@@ -47,7 +47,7 @@ namespace ParamonovDesktop.Services
 
         public async Task<Project> CreateProject(Project item)
         {
-            using (var request = CreateRequest(HttpMethod.Post, BaseUrl + "/api/project"))
+            using (var request = CreateRequest(HttpMethod.Post, BaseUrl + $"/api/project/{App.CurrentUser.IdUser}"))
             {
                 request.Content = ToJson(item);
                 using (var response = await Client.SendAsync(request))

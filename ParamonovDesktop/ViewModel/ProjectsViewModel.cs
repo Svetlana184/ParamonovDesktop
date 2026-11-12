@@ -98,7 +98,7 @@ namespace ParamonovDesktop.ViewModel
         private async Task LoadProjectsAsync()
         {
             IsLoading = true;
-            var list = await _projectService.GetMyProjects() ?? new List<Project>();
+            var list = await _projectService.GetProjects() ?? new List<Project>();
             _allProjects = list;
             ApplyFilter();
             IsLoading = false;
